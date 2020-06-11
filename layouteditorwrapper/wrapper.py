@@ -27,10 +27,11 @@ import numpy as np
 # The pylayout.so object is built using specific versions of PyQt4 and sip, and these versions must be importable when
 # pylayout is imported for it to run. The path shenanigans below ensure that this occurs, while resetting sys.path to
 # its initial state after the necessary imports. See README.md for installation instructions.
-import pylayout
-sys.path.insert(0, os.path.dirname(pylayout.__file__))
-from PyQt4 import QtCore, QtGui
-sys.path.pop(0)
+#import pylayout
+#sys.path.insert(0, os.path.dirname(pylayout.__file__))
+#from PyQt5 import QtCore, QtGui
+#sys.path.pop(0)
+import LayoutScript as pylayout
 
 # The two following simple functions are available to code that uses (lists of) numpy arrays as points.
 # This makes it easy for methods to accept lists of tuples, for example.

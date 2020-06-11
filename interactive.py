@@ -1,3 +1,8 @@
+import os
+import sys
+sys.path.append('C:\\Program Files (x86)\\LayoutEditor\\python')
+import LayoutScript
+
 from layouteditorwrapper import wrapper
 
 
