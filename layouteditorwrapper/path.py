@@ -64,7 +64,7 @@ def smooth_path(points, radius, points_per_radian):
             offset = h * np.array([np.cos(theta), np.sin(theta)])
             # The absolute angles of the new points (at least two), using the absolute center as origin
             arc_angles = (theta + np.pi + np.linspace(-bend_angle / 2, bend_angle / 2,
-                                                      np.ceil(np.abs(bend_angle) * points_per_radian) + 1))
+                                                      int(np.ceil(np.abs(bend_angle) * points_per_radian) + 1)))
             bend = [current + offset + radius * np.array([np.cos(phi), np.sin(phi)]) for phi in arc_angles]
             bends.append(bend)
             angles.append(bend_angle)
@@ -177,7 +177,7 @@ class Path(list):
 
     @property
     def end(self):
-        return np.sum(np.vstack(element.end for element in self), axis=0)
+        return np.sum(np.vstack([element.end for element in self]), axis=0)
 
     @property
     def span(self):

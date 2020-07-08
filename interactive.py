@@ -1,7 +1,7 @@
 import os
 import sys
-sys.path.append('C:\\Program Files (x86)\\LayoutEditor\\python')
-import LayoutScript
+sys.path.append(r'C:\Users\dflaniga\code\layout-20200504-win-64bit\layout\python')
+import LayoutScript as pylayout
 
 from layouteditorwrapper import wrapper
 
