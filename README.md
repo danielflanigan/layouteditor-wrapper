@@ -1,41 +1,58 @@
 # layouteditor-wrapper
 
-A wrapper for pylayout, the Python module for Juspertor LayoutEditor. This package is not developed or endorsed in any way by Juspertor.
+A wrapper for LayoutScript, the Python module for Juspertor LayoutEditor. This package is not developed or endorsed in any way by Juspertor.
 
 ## Contents
 
-The package will be installed as `layouteditorwrapper`. It includes
- 
-- `wrapper.py`, which contains wrapper classes for the pylayout objects.
-
-- `path.py`, which contains classes and functions useful for drawing co-planar waveguide components. 
-
+The name of the installed package is `layouteditor_wrapper`.
+It includes the following modules:
+- `wrapper.py`, which contains wrapper classes for the LayoutScript objects;
+- `path.py`, which contains classes and functions useful for drawing co-planar waveguide components; 
 - `components.py`, which contains a few example functions that create useful components.
 
-There is also a template script `interactive.py` that starts LayoutEditor with `wrapper.Layout` and `wrapper.Drawing` objects in the namespace:
+There is also a template script `app/interactive.py` that starts LayoutEditor with `Layout` and `Drawing` objects in the namespace:
+```
+$ /path/to/layouteditor-wrapper$ python -i app/interactive.py
+Variable 'l' is <class 'layouteditor_wrapper.wrapper.Layout'>
+Variable 'd' is <class 'layouteditor_wrapper.wrapper.Drawing'>
+>>> d.cells
+OrderedDict([('noname', <layouteditor_wrapper.wrapper.Cell object at 0x00000262A2FAC518>)])
+```
 
-`$ ipython -i interactive.py`
-
-This script can be used as a template to create layouts partly or entirely in code. If the wrapper objects are available in a terminal session, one can draw with the GUI and in code at the same time.
+This script can be used as a template to create layouts entirely in code.
 
 ## Installation
 
-The only dependency is numpy.
+The only dependencies are `setuptools` for installation and `numpy`.
 
-The compiled object `pylayout.so` relies on being able to import specific versions of SIP and PyQt4, and it will fail to load if the Python import machinery finds other versions first. These specific versions may be quite old, so this restriction could make it difficult to install more current software. To get around this issue, `wrapper.py` imports `pylayout` and inserts its path first into `sys.path`, makes the imports necessary to start LayoutEditor, then removes this entry from the path. For this to work, the `pylayout.so` object must be available on `sys.path`, and the correct versions of SIP and PyQt4 must be either in the same directory or the first ones encountered on the path.
-  
 ### Linux
 
-Pylayout is not included in the generic Linux download, but it included only with the versions that correspond to specific distributions. In these specific versions, pylayout is built against the SIP and PyQt4 versions that are included with the system Python.
+Re-organized package not yet installed on Linux.
 
 ### macOS
 
-The macOS versions of pylayout are bundled with the correct versions of PyQt4 and SIP. Simply add the distributed `pylayout` directory to `sys.path` -- for example, by including it in the `PYTHONPATH` environment variable. Since the required versions will also be in this directory, this package should work in any environment. 
+If LayoutEditor has been installed in `/Applications`, then `LayoutScript` is in `/Applications/layout.app/Contents/python`.
 
 ### Windows
 
-Windows installation has not been tested with this code.
+Download the .zip Windows installer (not the .msi) and unzip it to the desired location.
+The .zip installer includes a Python 3.7 distribution, and LayoutScript seems to rely on the specific DLLs that come with this distribution. 
+I did not succeed in running LayoutScript in a conda environment.
+Change directory to the LayoutEditor Python 3.7 distribution root directory, then run the simple installer script `install.py` in the `layouteditor-wrapper` root directory:
+```
+C:\path\to\layout-yyyymmdd-win-64bit\layout\python\python37> python C:\path\to\layouteditor-wrapper\install.py
+``` 
+On Windows, this script does the following:
+- Bootstrap the packaging tools `pip` and `setuptools`, which are not included with the LayoutEditor distribution.
+- Use pip to install the packages in `requirements.txt`.
+- Use pip to perform an editable install of the `layouteditor_wrapper` package.
+- Write a batch file `windows-environment.bat` in the package root directory.
+The cleanest way to run is to create the suggested link, which opens a command window and runs the batch file. 
+The batch file appends the directories to `PATH` that are necessary for the Python 3.7 executable (and pip) to run.
+It also creates an environment variable `LAYOUTSCRIPT_PATH` that `layouteditor_wrapper` uses to import the LayoutScript components.
+This method avoids polluting the `PATH`.
+With the packaging tools installed, you can customize the environment with any packages needed to draw your layouts.
 
-## Troubleshooting
+## Credits
 
-If the LayoutEditor window freezes or fails to pop up a window, try hitting enter in the interactive terminal window. If the interactive session is IPython, try hitting `ctrl-d` to bring up the Quit IPython prompt. On macOS, these steps should un-freeze LayoutEditor.
+Earlier generations of this package were developed in the [Experimental Cosmology Group at Columbia University](https://github.com/ColumbiaCMB) along with Glenn Jones and Heather McCarrick.

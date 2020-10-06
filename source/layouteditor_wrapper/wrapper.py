@@ -1,5 +1,4 @@
-"""
-This module is a wrapper for LayoutScript, the Python module of LayoutEditor.
+"""This module is a wrapper for LayoutScript, the Python module of LayoutEditor.
 
 This module includes several types of objects that each wrap a LayoutScript object. The naming conventions for LayoutScript
 objects are the following: in methods and functions, LayoutScript objects have a ls_ prefix; as attributes of wrapper
@@ -18,21 +17,25 @@ there is no need for them to be unique. These can be cached for speed, if necess
 In method docstrings the word *point* refers to a point with two coordinates. The classes use numpy arrays with shape
 (2,) internally, but methods should accept anything that allows point[0] and point[1] to be indexed, such as a tuple.
 """
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 import os
 import sys
 from collections import OrderedDict
 
 import numpy as np
-# The pylayout.so object is built using specific versions of PyQt4 and sip, and these versions must be importable when
-# pylayout is imported for it to run. The path shenanigans below ensure that this occurs, while resetting sys.path to
-# its initial state after the necessary imports. See README.md for installation instructions.
-#import pylayout
-#sys.path.insert(0, os.path.dirname(pylayout.__file__))
-#from PyQt5 import QtCore, QtGui
-#sys.path.pop(0)
-sys.path.append(r'C:\Users\dflaniga\code\layout-20200504-win-64bit\layout\python')
-import LayoutScript as ls
+
+try:
+    import LayoutScript as ls
+except ImportError:
+    pass
+try:
+    layoutscript_path = os.environ['LAYOUTSCRIPT_PATH']
+    sys.path.append(layoutscript_path)
+    import LayoutScript as ls
+    sys.path.remove(layoutscript_path)
+except KeyError:
+    raise RuntimeError("LayoutScript is not available on the Python path, and LAYOUTSCRIPT_PATH is not set.")
+
 
 # The two following simple functions are available to code that uses (lists of) numpy arrays as points.
 # This makes it easy for methods to accept lists of tuples, for example.

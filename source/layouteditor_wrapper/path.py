@@ -3,7 +3,7 @@ This module contains classes and functions that are useful for drawing co-planar
 
 The phrase 'package format' refers to the two-element (x, y) numpy array point format used everywhere in the package.
 """
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
@@ -76,7 +76,7 @@ def smooth_path(points, radius, points_per_radian):
 # ToDo: split this into separate classes
 class Mesh(object):
     """
-    This is a mix-in class that allows Element subclasses that have the same outlines to share mesh code.
+    This is a mix-in class that allows PathElement subclasses that have the same outlines to share mesh code.
     """
 
     def path_mesh(self):
@@ -148,17 +148,15 @@ class Mesh(object):
 
 
 class Path(list):
-    """
-    This class is a list subclass intended to hold Elements that are joined sequentially to form a path.
-    """
+    """A list subclass intended to hold PathElements that are joined sequentially to form a path."""
 
     def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
-        """
-        Draw all of the elements contained in this Path into the given cell. The Elements are drawn so that the origin
-        of each element after the first is the end of the previous element.
+        """Draw all of the PathElements contained in this Path into the given cell.
+
+        The PathElements are drawn so that the origin of each element after the first is the end of the previous element.
 
         :param cell: The Cell into which the result is drawn.
-        :param origin: The point to use for the origin of the first Element.
+        :param origin: The point to use for the origin of the first PathElement.
         :param positive_layer: An int representing the positive layer for boolean operations.
         :param negative_layer: An int representing the negative layer for boolean operations.
         :param result_layer: An int that is the layer on which the final result is drawn.
@@ -188,7 +186,7 @@ class Path(list):
         return np.sum([element.length for element in self])
 
 
-class Element(object):
+class PathElement(object):
 
     def __init__(self, points, round_to=None):
         points = wrapper.to_point_list(points)
@@ -224,7 +222,7 @@ class Element(object):
         pass
 
 
-class SmoothedElement(Element):
+class SmoothedElement(PathElement):
 
     def __init__(self, outline, radius, points_per_radian, round_to=None):
         super(SmoothedElement, self).__init__(points=outline, round_to=round_to)
@@ -407,7 +405,7 @@ class CPWElbowCouplerBlankMesh(CPWElbowCouplerBlank):
     pass
 
 
-class CPWTransition(Element):
+class CPWTransition(PathElement):
 
     def __init__(self, start_point, end_point, start_width, end_width, start_gap, end_gap, round_to=None):
         super(CPWTransition, self).__init__(points=[start_point, end_point], round_to=round_to)
@@ -434,7 +432,7 @@ class CPWTransition(Element):
         cell.add_polygon(lower_rotated_shifted, result_layer)
 
 
-class CPWTransitionBlank(Element):
+class CPWTransitionBlank(PathElement):
 
     def __init__(self, start_point, end_point, start_width, end_width, start_gap, end_gap, round_to=None):
         super(CPWTransitionBlank, self).__init__(points=[start_point, end_point], round_to=round_to)

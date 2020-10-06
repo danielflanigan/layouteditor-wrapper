@@ -1,14 +1,14 @@
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import numpy as np
-# This should be from layouteditor import interface, but that doesn't resolve currently.
-import wrapper
+
 
 def interdigitated_capacitor(drawing, space, length, width, base, offset, turns, layer, cell_name=None):
-    """
-    Create and return a new interface.Cell object containing an interdigitated capacitor with the given parameters.
+    """Create and return a new interface.Cell object containing an interdigitated capacitor with the given parameters.
+
     This function is a copy of combdrive.layout from the LayoutEditor shapes library.
 
-    :param drawing: the interface.Drawing object to which the new cell should be added.
+    :param drawing: the wrapper.Drawing object to which the new cell should be added.
     :param space: the spacing between tines.
     :param length: the length of each tine from base to end.
     :param width: the width of each tine.
@@ -17,7 +17,7 @@ def interdigitated_capacitor(drawing, space, length, width, base, offset, turns,
     :param turns: the number of pairs of tines; there is an extra tine on the bottom.
     :param layer: the layer on which to create the IDC.
     :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: an interface.Cell object containing the IDC.
+    :return: a wrapper.Cell object containing the IDC.
     """
     if cell_name is None:
         cell_name = 'IDC_{:.3f}_{:.3f}_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(space, length, width, base, offset,
@@ -36,21 +36,21 @@ def interdigitated_capacitor(drawing, space, length, width, base, offset, turns,
 
 
 def meander(drawing, length, spacing, width, turns, layer, cell_name=None):
-    """
-    Create and return a new interface.Cell object containing a meandered inductor with the given parameters. The
-    lower left corner of the meander is at (0, 0), and the center of the first trace is at (width / 2, width / 2).
+    """Create and return a new interface.Cell object containing a meandered inductor with the given parameters.
+
+    The lower left corner of the meander is at (0, 0), and the center of the first trace is at (width / 2, width / 2).
     The upper left corner is at (0, length). The lower right corner is at
     (2 * turns * width + (2 * turns - 1) * spacing, 0)
     because the final turn has no connecting piece to the right.
 
-    :param drawing: drawing: the interface.Drawing object to which the new cell should be added.
+    :param drawing: the wrapper.Drawing object to which the new cell should be added.
     :param length: the length of each turn, from outer edge to outer edge.
     :param spacing: the edge-to-edge spacing between traces.
     :param width: the width of the trace.
     :param turns: the number of out-and-back turns.
     :param layer: the layer on which to create the meander.
     :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: an interface.Cell object containing the meander.
+    :return: a wrapper.Cell object containing the meander.
     """
     if cell_name is None:
         cell_name = 'meander_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(length, spacing, width, turns, layer)
@@ -68,22 +68,22 @@ def meander(drawing, length, spacing, width, turns, layer, cell_name=None):
 
 
 def double_meander(drawing, length, spacing, width, turns, layer, cell_name=None):
-    """
-    Create and return a new interface.Cell object containing a double-wound meandered inductor with the given
-    parameters. The lower left corner of the meander is at (0, 0), and the center of the first trace is at (width /
-    2, width / 2). The upper left corner is at (0, length). The lower right corner is at
-    (2 * turns * width + (2 *
-    turns - 1) * spacing, 0)
+    """Create and return a new wrapper.Cell object containing a double-wound meandered inductor with the given
+    parameters.
+
+    The lower left corner of the meander is at (0, 0), and the center of the first trace is at (width /2, width / 2).
+    The upper left corner is at (0, length). The lower right corner is at
+    (2 * turns * width + (2 * turns - 1) * spacing, 0)
     because the final turn has no connecting piece to the right.
 
-    :param drawing: drawing: the interface.Drawing object to which the new cell should be added.
+    :param drawing: the wrapper.Drawing object to which the new cell should be added.
     :param length: the length of each turn, from outer edge to outer edge.
     :param spacing: the edge-to-edge spacing between traces.
     :param width: the width of the trace.
     :param turns: the number of turns, where each turn is a pair of traces.
     :param layer: the layer on which to create the meander.
     :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: an interface.Cell object containing the meander.
+    :return: a wrapper.Cell object containing the meander.
     """
     if cell_name is None:
         cell_name = 'double_meander_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(length, spacing, width, turns, layer)
@@ -116,5 +116,3 @@ def double_meander(drawing, length, spacing, width, turns, layer, cell_name=None
     out.extend(reversed(back))
     cell.add_path(out, int(layer), width=width, cap=2)
     return cell
-
-
