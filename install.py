@@ -8,7 +8,7 @@ def windows_install():
     layouteditor_wrapper_path = os.path.dirname(os.path.abspath(__file__))
     print(subprocess.check_output([sys.executable, '-m', 'ensurepip', '--default-pip']).decode())
     print(subprocess.check_output([sys.executable, '-m', 'pip', 'install', '-e', layouteditor_wrapper_path]).decode())
-    # Strip the last two directories from C:\path\to\layout-20200801-win-64bit\layout\python\python37
+    # Strip the last two directories from C:\path\to\layout-yyyymmdd-win-64bit\layout\python\python37
     layout_path = os.path.split(os.path.split(sys.exec_prefix)[0])[0]
     lines = [
         r"@echo off",
@@ -24,6 +24,17 @@ def windows_install():
         print("Wrote {}".format(environment_filename))
         print("To start a command window with the layout environment, create a link with the following target:")
         print(r'%windir%\System32\cmd.exe "/K" {}'.format(environment_filename))
+    sys.exit(0)
+
+
+def linux_install():
+    print("Linux installation not yet suppported.")
+    sys.exit(1)
+
+
+def macos_install():
+    print("macOS installation not yet suppported.")
+    sys.exit(1)
 
 
 if __name__ == '__main__':
@@ -31,11 +42,9 @@ if __name__ == '__main__':
     if operating_system == 'Windows':
         windows_install()
     elif operating_system == 'Linux':
-        print("Linux installation not yet suppported.")
-        sys.exit(1)
+        linux_install()
     elif operating_system == 'Darwin':
-        print("macOS installation not yet suppported.")
-        sys.exit(1)
+        macos_install()
     else:
         print("platform.system() returned {}".format(operating_system))
         sys.exit(1)
