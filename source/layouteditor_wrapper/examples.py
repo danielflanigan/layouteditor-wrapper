@@ -1,23 +1,35 @@
+"""
+This module contains a few examples that show how to draw simple shapes using the classes in the
+:mod:`wrapper.py <layouteditor_wrapper.wrapper>` module.
+"""
+
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
 
 def interdigitated_capacitor(drawing, space, length, width, base, offset, turns, layer, cell_name=None):
-    """Create and return a new interface.Cell object containing an interdigitated capacitor with the given parameters.
+    """Create and return a new :class:`~layouteditor_wrapper.wrapper.Cell` containing an interdigitated capacitor (IDC).
 
-    This function is a copy of combdrive.layout from the LayoutEditor shapes library.
+    This function is a copy of ``combdrive.layout`` from the LayoutEditor shapes library.
 
-    :param drawing: the wrapper.Drawing object to which the new cell should be added.
+    :param drawing: the object to which the new cell should be added.
+    :type drawing: Drawing
     :param space: the spacing between tines.
+    :type space: float or int
     :param length: the length of each tine from base to end.
+    :type length: float or int
     :param width: the width of each tine.
+    :type width: float or int
     :param base: the size of the base connecting the tines on each end.
+    :type base: float or int
     :param offset: the distance from the base to the tines of the opposite group.
-    :param turns: the number of pairs of tines; there is an extra tine on the bottom.
-    :param layer: the layer on which to create the IDC.
-    :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: a wrapper.Cell object containing the IDC.
+    :type offset: float or int
+    :param int turns: the number of pairs of tines; there is an extra tine on the bottom.
+    :param int layer: the layer on which to create the IDC.
+    :param str cell_name: the name of the cell; the default includes all the parameters.
+    :return: the new cell containing the IDC.
+    :rtype: Cell
     """
     if cell_name is None:
         cell_name = 'IDC_{:.3f}_{:.3f}_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(space, length, width, base, offset,
@@ -36,21 +48,25 @@ def interdigitated_capacitor(drawing, space, length, width, base, offset, turns,
 
 
 def meander(drawing, length, spacing, width, turns, layer, cell_name=None):
-    """Create and return a new interface.Cell object containing a meandered inductor with the given parameters.
+    """Create and return a new :class:`~layouteditor_wrapper.wrapper.Cell` containing a meandered inductor.
 
-    The lower left corner of the meander is at (0, 0), and the center of the first trace is at (width / 2, width / 2).
-    The upper left corner is at (0, length). The lower right corner is at
-    (2 * turns * width + (2 * turns - 1) * spacing, 0)
-    because the final turn has no connecting piece to the right.
+    The lower left corner of the meander is at ``(0, 0)``, and the center of the first trace is at
+    ``(width / 2, width / 2)``. The upper left corner is at ``(0, length)``. The lower right corner is at
+    ``(2 * turns * width + (2 * turns - 1) * spacing, 0)`` because the final turn has no connecting piece to the right.
 
-    :param drawing: the wrapper.Drawing object to which the new cell should be added.
+    :param drawing: the drawing to which the new cell should be added.
+    :type drawing: Drawing
     :param length: the length of each turn, from outer edge to outer edge.
+    :type length: float or int
     :param spacing: the edge-to-edge spacing between traces.
+    :type spacing: float or int
     :param width: the width of the trace.
-    :param turns: the number of out-and-back turns.
-    :param layer: the layer on which to create the meander.
-    :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: a wrapper.Cell object containing the meander.
+    :type width: float or int
+    :param int turns: the number of out-and-back turns.
+    :param int layer: the layer on which to create the meander.
+    :param str cell_name: the name of the cell; the default includes all the parameters.
+    :return: a new cell containing the meander.
+    :rtype: Cell
     """
     if cell_name is None:
         cell_name = 'meander_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(length, spacing, width, turns, layer)
@@ -68,22 +84,25 @@ def meander(drawing, length, spacing, width, turns, layer, cell_name=None):
 
 
 def double_meander(drawing, length, spacing, width, turns, layer, cell_name=None):
-    """Create and return a new wrapper.Cell object containing a double-wound meandered inductor with the given
-    parameters.
+    """Create and return a new :class:`~layouteditor_wrapper.wrapper.Cell` containing a double-wound meandered inductor.
 
-    The lower left corner of the meander is at (0, 0), and the center of the first trace is at (width /2, width / 2).
-    The upper left corner is at (0, length). The lower right corner is at
-    (2 * turns * width + (2 * turns - 1) * spacing, 0)
-    because the final turn has no connecting piece to the right.
+    The lower left corner of the meander is at ``(0, 0)``, and the center of the first trace is at
+    ``(width /2, width / 2)``. The upper left corner is at ``(0, length)``. The lower right corner is at
+    ``(2 * turns * width + (2 * turns - 1) * spacing, 0)`` because the final turn has no connecting piece to the right.
 
-    :param drawing: the wrapper.Drawing object to which the new cell should be added.
+    :param drawing: the drawing to which the new cell should be added.
+    :type drawing: Drawing
     :param length: the length of each turn, from outer edge to outer edge.
+    :type length: float or int
     :param spacing: the edge-to-edge spacing between traces.
+    :type spacing: float or int
     :param width: the width of the trace.
-    :param turns: the number of turns, where each turn is a pair of traces.
-    :param layer: the layer on which to create the meander.
-    :param cell_name: the name of the cell; the default includes all the parameters.
-    :return: a wrapper.Cell object containing the meander.
+    :type width: float or int
+    :param int turns: the number of turns, where each turn is a pair of traces.
+    :param int layer: the layer on which to create the meander.
+    :param str cell_name: the name of the cell; the default includes all the parameters.
+    :return: a new cell containing the meander.
+    :rtype: Cell
     """
     if cell_name is None:
         cell_name = 'double_meander_{:.3f}_{:.3f}_{:.3f}_{:.0f}_{:.0f}'.format(length, spacing, width, turns, layer)
