@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='layouteditor-wrapper',
-      version='0.4.0',
+      version='0.5.1',
       description='A Python wrapper for LayoutScript, the scripting interface of Juspertor LayoutEditor.',
       author='Daniel Flanigan',
       author_email='daniel.isaiah.flanigan@gmail.com',
