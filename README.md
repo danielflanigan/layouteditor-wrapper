@@ -92,4 +92,4 @@ Earlier generations of this package were developed in the [Experimental Cosmolog
 .. |docs| image:: https://readthedocs.org/projects/layouteditor-wrapper/badge/?version=latest
     :alt: Documentation Status
     :scale: 100%
-    :target: https://docs.readthedocs.io/en/latest/?badge=latest
+    :target: https://layouteditor-wrapper.readthedocs.io/en/latest/?badge=latest
