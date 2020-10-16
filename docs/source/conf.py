@@ -14,8 +14,9 @@
 #
 import os
 import sys
-sys.path.append(os.path.abspath('./source'))
-
+#sys.path.append(os.path.abspath('./source'))
+sys.path.append(os.path.abspath('../../source'))
+print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
