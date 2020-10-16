@@ -9,13 +9,9 @@ This package is not developed or endorsed in any way by Juspertor.
 Introduction
 ------------
 
-The main goal of this package is to provide an interface to LayoutScript that uses familiar Python objects and is harmonized with the LayoutEditor GUI (especially in the occasional cases where LayoutScript uses different conventions).  
-For example, the point objects used by the interface are numpy arrays with size 2 (x, y) instead of the internal LayoutScript types.
-This allows them to be treated as vectors for mathematical operations such as adding points and calculating distances or angles between them. 
-This interface can be set to use the database user unit, which is often more convenient than using the integer database units.
+The main goal of this package is to provide an interface to LayoutScript that uses familiar Python objects and is harmonized with the LayoutEditor GUI (especially in the occasional cases where LayoutScript uses different conventions). For example, the point objects used by the interface are numpy arrays with size 2 (x, y) instead of the internal LayoutScript types. This allows them to be treated as vectors for mathematical operations such as adding points and calculating distances or angles between them. This interface can be set to use the database user unit, which is often more convenient than using the integer database units.
 
 The easiest way to draw objects in a layout is to use methods of the ``wrapper.Cell`` class, which wraps a ``LayoutScript.cell`` object.
-This package was originally developed to draw large arrays of superconducting microwave resonators.
 
 Contents
 --------
@@ -51,18 +47,15 @@ This package is compatible with versions of LayoutEditor that include LayoutScri
 (Earlier versions of this package were developed for pylayout.)
 The only dependencies are ``setuptools`` for installation and ``numpy``.
 
-Linux
-+++++
+**Linux**
 
 Re-organized package not yet installed on Linux.
 
-macOS
-+++++
+**macOS**
 
 If LayoutEditor has been installed in ``/Applications``, then the LayoutScript files are in ``/Applications/layout.app/Contents/python``.
 
-Windows
-+++++++
+**Windows**
 
 Download the .zip Windows installer (not the .msi) and unzip it to the desired location.
 The .zip installer includes a Python 3.7 distribution, and LayoutScript seems to rely on the specific DLLs that come with this distribution. 
