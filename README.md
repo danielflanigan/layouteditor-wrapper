@@ -1,6 +1,8 @@
 layouteditor-wrapper
 ====================
 
+|docs|
+
 A Python wrapper for [LayoutScript](https://layouteditor.org/layoutscript), the scripting interface of [Juspertor LayoutEditor](https://layouteditor.com).
 This package is not developed or endorsed in any way by Juspertor.
 
@@ -86,3 +88,8 @@ Credits
 -------
 
 Earlier generations of this package were developed in the [Experimental Cosmology Group at Columbia University](https://github.com/ColumbiaCMB) along with Glenn Jones and Heather McCarrick.
+
+.. |docs| image:: https://readthedocs.org/projects/layouteditor-wrapper/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://docs.readthedocs.io/en/latest/?badge=latest
