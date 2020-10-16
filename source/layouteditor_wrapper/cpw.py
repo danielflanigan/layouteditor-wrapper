@@ -1,287 +1,28 @@
 """
-This module contains classes and functions that are useful for drawing co-planar waveguide components, especially
-superconducting resonators.
+This module contains classes for drawing co-planar waveguide transmission lines.
 
-The phrase 'package format' refers to the two-element (x, y) numpy ndarray point format used everywhere in the package.
+All of the classes draw structures with **negative polarity**, meaning that a structure represents the absence of metal,
+because this avoids the problem of having determining the extent of the ground plane.
 """
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from . import wrapper
-
-
-def from_increments(increments, origin=(0, 0)):
-    """Return a list of points starting from the given origin and separated by the given increments.
-
-    This function exists because it is often easier to specify paths in terms of the differences between points than in
-    terms of the absolute values. Example::
-
-        >>> from_increments(increments=[(200, 0), (0, 300)], origin=(100, 0))
-        [np.array([100, 0]), np.array([300, 0]), np.array([300, 300])]
-
-    :param increments: a list of points in the package format; the differences between consecutive returned points.
-    :type increments: list[indexable]
-    :param origin: the starting point of the list.
-    :type origin: indexable
-    :return: a list of points in the package format.
-    :rtype: list[numpy.ndarray]
-    """
-    points = [wrapper.to_point(origin)]
-    for increment in [wrapper.to_point(point) for point in increments]:
-        points.append(points[-1] + increment)
-    return points
-
-
-# ToDo: warn if consecutive points are too close together to bend properly.
-def smooth_path(points, radius, points_per_radian):
-    """Return a list of smoothed points constructed by adding points to change the given corners into arcs.
-
-    At each corner, points are added so that straight sections are connected by circular arcs that are tangent to the
-    straight sections. If the given radius is too large there is no way to make this work, and the results will be ugly.
-    The given radius should be smaller than about half the length of the shorted straight section. If several points lie
-    on the same line, the redundant ones are removed. **Note that the returned path will not contain any of the given
-    points except for the starting and ending points, because all of the interior points will be replaced.**
-
-    :param points: a list of points in package format.
-    :type points: list[indexable]
-    :param float radius: the radius of the circular arcs used to connect the straight segments.
-    :param int points_per_radian: the number of points per radian of arc radius; usually 60 (about 1 per degree) works.
-    :return: a list of smoothed points.
-    :rtype: list[numpy.ndarray]
-    """
-    bends = []
-    angles = []
-    corners = []
-    offsets = []
-    for before, current, after in zip(points[:-2], points[1:-1], points[2:]):
-        before_to_current = current - before
-        current_to_after = after - current
-        # The angle at which the path bends at the current point, in (-pi, pi)
-        bend_angle = np.angle(np.inner(before_to_current, current_to_after) +
-                              1j * np.cross(before_to_current, current_to_after))
-        if np.abs(bend_angle) > 0:  # If the three points are co-linear then drop the current point
-            # The distance from the corner point to the arc center
-            h = radius / np.cos(bend_angle / 2)
-            # The absolute angle of the arc center point, in (-pi, pi)
-            theta = (np.arctan2(before_to_current[1], before_to_current[0]) +
-                     bend_angle / 2 + np.sign(bend_angle) * np.pi / 2)
-            # The offset of the arc center relative to the corner
-            offset = h * np.array([np.cos(theta), np.sin(theta)])
-            # The absolute angles of the new points (at least two), using the absolute center as origin
-            arc_angles = (theta + np.pi + np.linspace(-bend_angle / 2, bend_angle / 2,
-                                                      int(np.ceil(np.abs(bend_angle) * points_per_radian) + 1)))
-            bend = [current + offset + radius * np.array([np.cos(phi), np.sin(phi)]) for phi in arc_angles]
-            bends.append(bend)
-            angles.append(bend_angle)
-            corners.append(current)
-            offsets.append(offset)
-    return bends, angles, corners, offsets
-
-
-class SegmentList(list):
-    """A list subclass for PathElements that are joined sequentially to form a path."""
-
-    def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
-        """Draw all of the PathElements contained in this SegmentList into the given cell.
-
-        The PathElements are drawn so that the origin of each element after the first is the end of the previous element.
-
-        :param cell: The cell into which the result is drawn.
-        :type cell: Cell
-        :param origin: The point to use for the origin of the first Segment.
-        :type origin: indexable
-        :param int positive_layer: The positive layer for the boolean operations.
-        :param int negative_layer: The negative layer for the boolean operations.
-        :param int result_layer: The layer on which the final result is drawn.
-        :return: None.
-        """
-        # It's crucial to avoiding input modification that this also makes a copy.
-        point = wrapper.to_point(origin)
-        for element in self:
-            element.draw(cell, point, positive_layer, negative_layer, result_layer)
-            # NB: using += produces an error when casting int to float.
-            point = point + element.end
-
-    @property
-    def start(self):
-        """The start point of the SegmentList."""
-        return self[0].start
-
-    @property
-    def end(self):
-        """The end point of the SegmentList."""
-        return np.sum(np.vstack([element.end for element in self]), axis=0)
-
-    @property
-    def span(self):
-        """The difference between start and end points: span = end - start, in the vector sense."""
-        return self.end - self.start
-
-    @property
-    def length(self):
-        """The sum of the lengths of the PathElements in this SegmentList."""
-        return np.sum([element.length for element in self])
-
-
-class Segment(object):
-    """An element of a SegmentList."""
-
-    def __init__(self, points, round_to=None):
-        """
-
-        :param points:
-        :param round_to:
-        """
-        points = wrapper.to_point_list(points)
-        if round_to is not None:
-            points = [round_to * np.round(p / round_to) for p in points]
-        self._points = points
-
-    @property
-    def points(self):
-        """The points (``list[numpy.ndarray]``) in the element, rounded to ``round_to`` (read-only)."""
-        return self._points
-
-    @property
-    def start(self):
-        """The start point (``numpy.ndarray``) of the Segment (read-only)."""
-        return self._points[0]
-
-    @property
-    def end(self):
-        """The end point (``numpy.ndarray``) of the Segment (read-only)."""
-        return self._points[-1]
-
-    @property
-    def x(self):
-        """A ``numpy.ndarray`` containing the x-coordinates of all points (read-only)."""
-        return np.array([point[0] for point in self.points])
-
-    @property
-    def y(self):
-        """A ``numpy.ndarray`` containing the y-coordinates of all points (read-only)."""
-        return np.array([point[1] for point in self.points])
-
-    @property
-    def length(self):
-        """The length of the Segment, calculating by adding the lengths of straight lines connecting the points."""
-        return np.sum(np.hypot(np.diff(self.x), np.diff(self.y)))
-
-    def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
-        """Draw this Segment in the given cell.
-
-        Subclasses implement this method to draw themselves.
-
-        :param cell:
-        :param origin:
-        :param positive_layer:
-        :param negative_layer:
-        :param result_layer:
-        :return: None
-        """
-        pass
-
-
-class SmoothedSegment(Segment):
-    """
-    document me!
-    """
-
-    def __init__(self, outline, radius, points_per_radian, round_to=None):
-        """
-
-        :param outline:
-        :param radius:
-        :param points_per_radian:
-        :param round_to:
-        """
-        super(SmoothedSegment, self).__init__(points=outline, round_to=round_to)
-        self.radius = radius
-        self.points_per_radian = points_per_radian
-        self.bends, self.angles, self.corners, self.offsets = smooth_path(self._points, radius, points_per_radian)
-
-    @property
-    def points(self):
-        """
-
-        :return:
-        """
-        p = [self.start]
-        for bend in self.bends:
-            p.extend(bend)
-        p.append(self.end)
-        return p
-
-
-class Trace(SmoothedSegment):
-    """A single positive trace that could be used for microstrip.
-
-    It can be drawn to overlap at either end with the adjacent elements, and the overlap lengths are not counted when
-    calculating the total length. This is useful, for example, when drawing a trace where the electrical connection is
-    formed by an overlap.
-    """
-
-    def __init__(self, outline, width, start_overlap=0, end_overlap=0, radius=None, points_per_radian=60,
-                 round_to=None):
-        """
-
-        :param outline:
-        :param width:
-        :param start_overlap:
-        :param end_overlap:
-        :param radius:
-        :param points_per_radian:
-        :param round_to:
-        """
-        self.width = width
-        self.start_overlap = start_overlap
-        self.end_overlap = end_overlap
-        if radius is None:
-            radius = 2 * width
-        super(Trace, self).__init__(outline=outline, radius=radius, points_per_radian=points_per_radian,
-                                    round_to=round_to)
-
-    def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
-        """
-
-        :param cell:
-        :param origin:
-        :param positive_layer:
-        :param negative_layer:
-        :param result_layer:
-        :return:
-        """
-        origin = wrapper.to_point(origin)
-        points = [origin + point for point in self.points]
-        cell.add_path(points=points, layer=result_layer, width=self.width)
-        # Note that the overlap points are not stored or counted in the calculation of the length.
-        if self.start_overlap > 0:
-            v_start = points[0] - points[1]
-            phi_start = np.arctan2(v_start[1], v_start[0])
-            start_points = [points[0],
-                            points[0] + self.start_overlap * np.array([np.cos(phi_start), np.sin(phi_start)])]
-            cell.add_path(points=start_points, layer=result_layer, width=self.width)
-        if self.end_overlap > 0:
-            v_end = points[-1] - points[-2]
-            phi_end = np.arctan2(v_end[1], v_end[0])
-            end_points = [points[-1],
-                          points[-1] + self.end_overlap * np.array([np.cos(phi_end), np.sin(phi_end)])]
-            cell.add_path(points=end_points, layer=result_layer, width=self.width)
+from layouteditor_wrapper.wrapper import to_point
+from layouteditor_wrapper.transmission_line import Segment, SmoothedSegment, DEFAULT_POINTS_PER_RADIAN
 
 
 class CPW(SmoothedSegment):
-    """Negative co-planar waveguide."""
+    """The negative space of a segment of co-planar waveguide."""
 
-    def __init__(self, outline, width, gap, radius=None, points_per_radian=60, round_to=None):
+    def __init__(self, outline, width, gap, radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN, round_to=None):
         """
-
         :param outline:
-        :param width:
-        :param gap:
-        :param radius:
-        :param points_per_radian:
-        :param round_to:
+        :param float width: the width of the center trace.
+        :param float gap: the gaps on each side of the center trace between it and the ground planes.
+        :param float radius: see :func:`~wrapper.smooth`.
+        :param int points_per_radian: see :func:`~wrapper.smooth`.
+        :param float round_to: see :class:`SmoothedSegment`.
         """
         self.width = width
         self.gap = gap
@@ -292,7 +33,6 @@ class CPW(SmoothedSegment):
 
     def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
         """
-
         :param cell:
         :param origin:
         :param positive_layer:
@@ -300,7 +40,7 @@ class CPW(SmoothedSegment):
         :param result_layer:
         :return:
         """
-        points = [wrapper.to_point(origin) + point for point in self.points]
+        points = [to_point(origin) + point for point in self.points]
         cell.add_path(points, negative_layer, self.width)
         cell.add_path(points, positive_layer, self.width + 2 * self.gap)
         cell.subtract(positive_layer=positive_layer, negative_layer=negative_layer, result_layer=result_layer)
@@ -309,7 +49,7 @@ class CPW(SmoothedSegment):
 class CPWBlank(SmoothedSegment):
     """Negative co-planar waveguide with the center trace missing, used when the center trace is a separate layer."""
 
-    def __init__(self, outline, width, gap, radius=None, points_per_radian=60, round_to=None):
+    def __init__(self, outline, width, gap, radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN, round_to=None):
         """
 
         :param outline:
@@ -327,7 +67,7 @@ class CPWBlank(SmoothedSegment):
                                        round_to=round_to)
 
     def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
-        points = [wrapper.to_point(origin) + point for point in self.points]
+        points = [to_point(origin) + point for point in self.points]
         cell.add_path(points, positive_layer, self.width + 2 * self.gap)
         cell.subtract(positive_layer=positive_layer, negative_layer=negative_layer, result_layer=result_layer)
 
@@ -335,7 +75,7 @@ class CPWBlank(SmoothedSegment):
 class CPWElbowCoupler(SmoothedSegment):
     """Negative co-planar waveguide elbow coupler."""
 
-    def __init__(self, tip_point, elbow_point, joint_point, width, gap, radius=None, points_per_radian=60,
+    def __init__(self, tip_point, elbow_point, joint_point, width, gap, radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN,
                  round_to=None):
         """
 
@@ -366,7 +106,7 @@ class CPWElbowCoupler(SmoothedSegment):
         :param round_tip:
         :return:
         """
-        points = [wrapper.to_point(origin) + point for point in self.points]
+        points = [to_point(origin) + point for point in self.points]
         cell.add_path(points, negative_layer, self.width)
         cell.add_path(points, positive_layer, self.width + 2 * self.gap)
         if round_tip:
@@ -384,7 +124,7 @@ class CPWElbowCouplerBlank(SmoothedSegment):
     separate layer.
     """
 
-    def __init__(self, tip_point, elbow_point, joint_point, width, gap, radius=None, points_per_radian=60,
+    def __init__(self, tip_point, elbow_point, joint_point, width, gap, radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN,
                  round_to=None):
         """
 
@@ -415,7 +155,7 @@ class CPWElbowCouplerBlank(SmoothedSegment):
         :param round_tip:
         :return:
         """
-        points = [wrapper.to_point(origin) + point for point in self.points]
+        points = [to_point(origin) + point for point in self.points]
         cell.add_path(points, result_layer, self.width + 2 * self.gap)
         if round_tip:
             v = points[0] - points[1]
@@ -464,10 +204,10 @@ class CPWTransition(Segment):
                  (self.length, self.end_width / 2 + self.end_gap),
                  (self.length, self.end_width / 2)]
         lower = [(x, -y) for x, y in upper]
-        upper_rotated = [np.dot(rotation, wrapper.to_point(p).T).T for p in upper]
-        lower_rotated = [np.dot(rotation, wrapper.to_point(p).T).T for p in lower]
-        upper_rotated_shifted = [wrapper.to_point(origin) + self.start + p for p in upper_rotated]
-        lower_rotated_shifted = [wrapper.to_point(origin) + self.start + p for p in lower_rotated]
+        upper_rotated = [np.dot(rotation, to_point(p).T).T for p in upper]
+        lower_rotated = [np.dot(rotation, to_point(p).T).T for p in lower]
+        upper_rotated_shifted = [to_point(origin) + self.start + p for p in upper_rotated]
+        lower_rotated_shifted = [to_point(origin) + self.start + p for p in lower_rotated]
         cell.add_polygon(upper_rotated_shifted, result_layer)
         cell.add_polygon(lower_rotated_shifted, result_layer)
 
@@ -511,8 +251,8 @@ class CPWTransitionBlank(Segment):
                 (self.length, self.end_width / 2 + self.end_gap),
                 (self.length, -self.end_width / 2 - self.end_gap),
                 (0, -self.start_width / 2 - self.start_gap)]
-        poly_rotated = [np.dot(rotation, wrapper.to_point(p).T).T for p in poly]
-        poly_rotated_shifted = [wrapper.to_point(origin) + self.start + p for p in poly_rotated]
+        poly_rotated = [np.dot(rotation, to_point(p).T).T for p in poly]
+        poly_rotated_shifted = [to_point(origin) + self.start + p for p in poly_rotated]
         cell.add_polygon(poly_rotated_shifted, result_layer)
 
 
@@ -602,7 +342,7 @@ class CPWMesh(CPW, Mesh):
     """doc me!"""
 
     def __init__(self, outline, width, gap, mesh_spacing, mesh_border, mesh_radius, num_circle_points, num_mesh_rows,
-                 radius=None, points_per_radian=60, round_to=None):
+                 radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN, round_to=None):
         """
 
         :param outline:
@@ -647,7 +387,7 @@ class CPWBlankMesh(CPWBlank, Mesh):
     """doc me!"""
 
     def __init__(self, outline, width, gap, mesh_spacing, mesh_border, mesh_radius, num_circle_points, num_mesh_rows,
-                 radius=None, points_per_radian=60, round_to=None):
+                 radius=None, points_per_radian=DEFAULT_POINTS_PER_RADIAN, round_to=None):
         """
 
         :param outline:

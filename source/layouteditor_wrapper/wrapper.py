@@ -39,14 +39,10 @@ except ImportError:
         warnings.warn("LayoutScript is not available on the Python path, and LAYOUTSCRIPT_PATH is not set.")
 
 
-# The two following simple functions are available to code that uses (lists of) numpy arrays as points.
-# This makes it easy for methods to accept lists of tuples, for example.
-
 def to_point(indexable):
-    """Return a numpy ndarray in the two-dimensional point format used by this module.
+    """Return a package-format point, a numpy ndarray with shape ``(2,)`` containing (x, y) coordinates.
 
-    :param indexable: an indexable object with integer indices 0 and 1, such as a two-element tuple.
-    :type indexable: object
+    :param indexable indexable: an indexable object with integer indices 0 and 1, such as a two-element tuple.
     :return: an array with shape (2,) containing the values at these two indices.
     :rtype: numpy.ndarray
     """
@@ -54,23 +50,25 @@ def to_point(indexable):
 
 
 def to_point_list(iterable):
-    """Return a list of numpy arrays in the two-dimensional point format used by this module.
+    """Return a list of package-format points from using :func:`to_point` on each element of the given iterable.
 
-    :param iterable iterable: an iterable of indexable objects that all have integer indices 0 and 1.
-    :return: a list of arrays with shape (2,) containing the values at these two indices.
+    This function accepts, for example, a list of two-element tuples.
+
+    :param iterable[indexable] iterable: an iterable of indexable objects that all have integer indices 0 and 1.
+    :return: a list of arrays with shape ``(2,)`` containing (x, y) coordinates.
     :rtype: list[numpy.ndarray]
     """
     return [to_point(point) for point in iterable]
 
 
 def instantiate_element(ls_element, drawing):
-    """Instantiate the appropriate wrapper class for the given LayoutScript element type.
+    """Instantiate and return the appropriate :class:`Element` subclass for the given LayoutScript element type.
 
     :param ls_element: a LayoutScript element object.
     :type ls_element: LayoutScript.element
-    :param drawing: a Drawing object.
-    :type drawing: :class:
-    :return: a wrapper instance for the LayoutScript element.
+    :param Drawing drawing: a Drawing object.
+    :return: a wrapper for the LayoutScript element, one of :class:`Box`, :class:`Cellref`, :class:`CellrefArray`,
+             :class:`Circle`, :class:`Path`, :class:`Polygon`, or :class:`Text`.
     :rtype: :class:`~layouteditor_wrapper.wrapper.Element`
     """
     elements = (Box, Cellref, CellrefArray, Circle, Path, Polygon, Text)
@@ -81,14 +79,14 @@ def instantiate_element(ls_element, drawing):
 
 
 class Layout(object):
-    """Wrap a LayoutScript.layout object."""
+    """Wrap a ``LayoutScript.layout`` object."""
 
     def __init__(self):
         """Instantiate a new Layout, which creates a new LayoutScript layout."""
         self.ls = ls.project.newLayout()
 
     def drawing(self, use_user_unit=True, auto_number=False):
-        """Return a wrapper.Drawing object that wraps the current LayoutScript.drawing object."""
+        """Return a :class:`Drawing` object that wraps the current ``LayoutScript.drawing`` object."""
         return Drawing(self.ls.drawing, use_user_unit=use_user_unit, auto_number=auto_number)
 
     def load(self, filename):
@@ -98,7 +96,7 @@ class Layout(object):
     def save(self):
         """Save the current layout to the filename from which it was loaded.
 
-        :raises: RuntimeError if the filename attribute of the layout is empty.
+        :raises RuntimeError: if the filename attribute of the layout is empty.
         """
         if self.filename:
             self.ls.save()
@@ -117,7 +115,7 @@ class Layout(object):
 
 
 class Drawing(object):
-    """Wrap a LayoutScript.drawingField object."""
+    """Wrap a ``LayoutScript.drawingField`` object."""
 
     def __init__(self, ls_drawing, use_user_unit=True, auto_number=False, validate_cell_names=True):
         """Create a new Drawing object from the given ``LayoutScript.drawingField`` object.
@@ -138,8 +136,6 @@ class Drawing(object):
         :param bool validate_cell_names: if True, check that the new cell name (after auto-numbering, if applicable) is
                                          not already used to avoid corruption; use False to add large numbers of cells
                                          more rapidly.
-        :return: the new Drawing object.
-        :rtype: Drawing
         """
         self.ls = ls_drawing
         self.use_user_unit = use_user_unit
@@ -171,16 +167,20 @@ class Drawing(object):
         self.ls.userunits = unit
 
     def to_database_units(self, value_or_array):
-        """Return the given value or array scaled to the database units.
+        """Return the given value or array converted from the units used by the Drawing, which may be
+        either the user unit (default) or the database unit, to database units.
 
-        The behavior of this function depends on the value of the `__init__` argument use_user_unit in the following way: if
-        this is True, then this function expects values in user units, which are scaled appropriately and rounded to
-        the nearest integer; if False, this function expects values in database units, which are simply rounded to
-        the nearest integer. The return value is always an int or a numpy ndarray of dtype either np.int32 or
-        possibly np.int64.
+        The behavior depends on the attribute ``use_user_unit`` (:meth:`~Drawing.__init__` default is True):
+        - if True, return the given value scaled from user units to database units then rounded and cast to int;
+        - if False, return the given value or array rounded and cast to int.
 
-        :param value_or_array: a value or array to be converted to integer database units.
-        :return: the converted int or int array.
+        This method and its companion :meth:`~Drawing.from_database_units` are the only places where values should be
+        converted to and from database units.
+
+        :param value_or_array: a value or array to be converted to the integer database units.
+        :type value_or_array: float, or numpy.ndarray[float]
+        :return: the given value or array converted to database units.
+        :rtype: int or numpy.ndarray[int]
         """
         try:
             # Ensure that zero-length arrays are treated as scalars and converted to ints
@@ -195,12 +195,23 @@ class Drawing(object):
             if self.use_user_unit:
                 return int(round(value_or_array / self.user_unit))
             else:
-                return int(value_or_array)
+                return int(round(value_or_array))
 
     def from_database_units(self, value_or_array):
-        """Return the given value or array scaled from the database units.
+        """Return the given value or array converted from database units to the units used by the Drawing, which may be
+        either the user unit (default) or the database unit.
 
-        :return: float or numpy.ndarray of float
+        The behavior depends on the attribute ``use_user_unit`` (:meth:`~Drawing.__init__` default is True):
+        - if True, return the given values scaled from database units to user units, as floats;
+        - if False, return the given values simply cast to int, which they should already be.
+
+        This method and its companion :meth:`~Drawing.to_database_units` are the only places where values should be
+        converted to and from database units.
+
+        :param value_or_array: the value or array to convert.
+        :type value_or_array: int or numpy.ndarray[int]
+        :return: the given value or array converted from the database units.
+        :rtype: float, int, or numpy.ndarray[float, int]
         """
         try:
             if self.use_user_unit:
