@@ -9,9 +9,7 @@ This package is not developed or endorsed in any way by Juspertor.
 Introduction
 ------------
 
-The main goal of this package is to provide an interface to LayoutScript that uses familiar Python objects and is harmonized with the LayoutEditor GUI (especially in the occasional cases where LayoutScript uses different conventions). For example, the point objects used by the interface are numpy arrays with size 2 (x, y) instead of the internal LayoutScript types. This allows them to be treated as vectors for mathematical operations such as adding points and calculating distances or angles between them. This interface can be set to use the database user unit, which is often more convenient than using the integer database units.
-
-The easiest way to draw objects in a layout is to use methods of the ``wrapper.Cell`` class, which wraps a ``LayoutScript.cell`` object.
+The main goal of this package is to provide an interface to LayoutScript that uses familiar Python objects and is harmonized with the LayoutEditor GUI (especially in the occasional cases where LayoutScript uses different conventions). For example, the point objects used by the interface are numpy arrays with size 2 (x, y) instead of the internal LayoutScript types. This allows them to be treated as vectors for mathematical operations such as adding points and calculating distances or angles between them. The interface can be set to use the float user unit, which is often more convenient than using the integer database units.
 
 Contents
 --------
@@ -21,7 +19,7 @@ It includes the following modules:
 
 - ``wrapper.py``, the core of the package, which contains stateless wrapper classes for the LayoutScript objects;
 - ``segment.py``, which contains classes and functions useful for drawing transmission lines, especially co-planar waveguide components; 
-- ``components.py``, which contains a few example functions that create useful components;
+- ``examples.py``, which contains a few example functions that create simple components;
 - ``__main__.py``, a script for interactive use that creates ``Layout`` and ``Drawing`` objects.
 
 Create a new design::
