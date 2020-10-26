@@ -13,7 +13,8 @@ unit, like the GUI, but can also use the integer database units, like LayoutScri
 The classes representing the objects in a drawing are nearly-stateless wrappers for the underlying LayoutScript objects.
 The wrapper class methods and properties do not have any attributes of their own, but just provide an interface to the
 LayoutScript objects. Since the wrappers store no state, there is no need for them to be unique.
-For example, every call to :meth:`Drawing.cells <layouteditor_wrapper.wrapper.Drawing.cells>` generates a new list of :class:`~layouteditor_wrapper.wrapper.Cell` objects.  These can be cached for speed, if necessary.
+For example, every call to :meth:`Drawing.cells <layouteditor_wrapper.wrapper.Drawing.cells>` generates a new list of
+:class:`~layouteditor_wrapper.wrapper.Cell` objects.  These can be cached for speed, if necessary.
 
 In method docstrings the word *point* refers to a point with two coordinates. Internally, the classes use numpy arrays
 with shape ``(2,)``, but their methods accept anything that allows ``point[0]`` and ``point[1]`` to be indexed, such as
@@ -37,6 +38,34 @@ except ImportError:
         sys.path.remove(layoutscript_path)
     except KeyError:
         warnings.warn("LayoutScript is not available on the Python path, and LAYOUTSCRIPT_PATH is not set.")
+
+
+# This is the datatype given to the text elements added to every cell by the Free version of LayoutEditor.
+FREE_VERSION_ADDED_TEXT_DATATYPE = 13476
+
+
+# These dicts map between the integer "presentation" of text elements and human-readable strings.
+TEXT_PRESENTATION_TO_ANCHOR_POINT = {'0': 'upper left',
+                                     '1': 'upper center',
+                                     '2': 'upper right',
+                                     '3': 'center left',
+                                     '4': 'center center',
+                                     '5': 'center right',
+                                     '6': 'lower left',
+                                     '7': 'lower center',
+                                     '8': 'lower right'
+}
+
+TEXT_ANCHOR_POINT_TO_PRESENTATION = {'upper left': 0,
+                                     'upper center': 1,
+                                     'upper right': 2,
+                                     'center left': 3,
+                                     'center center': 4,
+                                     'center right': 5,
+                                     'lower left': 6,
+                                     'lower center': 7,
+                                     'lower right': 8
+}
 
 
 def to_point(indexable):
@@ -140,8 +169,7 @@ class Drawing(object):
         self.ls = ls_drawing
         self.use_user_unit = use_user_unit
         self.auto_number = auto_number
-        if auto_number:
-            self._cell_number = 0
+        self._cell_number = 0
         self.validate_cell_names = validate_cell_names
 
     @property
@@ -223,6 +251,14 @@ class Drawing(object):
                 return float(value_or_array * self.user_unit)
             else:
                 return int(value_or_array)
+
+    def import_cells(self, filename):
+        """Import the cells from the given filename into the current layout.
+
+        :param str filename: the filename to import.
+        :return: None.
+        """
+        self.ls.importFile(filename)
 
     @property
     def cells(self):
@@ -381,6 +417,22 @@ class Drawing(object):
     def current_cell_name(self, name):
         self.current_cell = self.cells[name]
 
+    def select_all_visible_text(self):
+        """Select all visible text in the current cell."""
+        self.ls.textSelect()
+
+    def select_all_visible_box(self):
+        """Select all visible boxes in the current cell."""
+        self.ls.boxSelect()
+
+    def deselect_all(self):
+        """Deselect all selected elements."""
+        self.ls.deselectAll()
+
+    def convert_selected_to_polygon(self):
+        """Convert all selected elements to polygons."""
+        self.ls.toPolygon()
+
 
 class Cell(object):
     """Wrap a ``LayoutScript.cell`` object."""
@@ -469,11 +521,11 @@ class Cell(object):
     def add_cell_array(self, cell, origin=(0, 0), step_x=(0, 0), step_y=(0, 0), repeat_x=1, repeat_y=1, angle=0):
         """Return a CellrefArray object produced by adding to this cell an array of the given cells.
 
-        The coordinates of the origin and step poins are expected to be floats in user units if use_user_unit is True,
+        The coordinates of the origin and step points are expected to be floats in user units if use_user_unit is True,
         and ints in database units if it is False.
 
         :param cell: the Cell object to use to create the CellrefArray in this cell.
-        :type cell: wrapper.Cell
+        :type cell: Cell
         :param origin: a point containing the origin x- and y-coordinates.
         :type origin: numpy.ndarray
         :param step_x: a point containing the x- and y-increment for all cells in each row.
@@ -618,24 +670,52 @@ class Cell(object):
             path.cap = int(cap)
         return path
 
-    def add_text(self, origin, text, layer, height=None):
+    def add_text(self, origin, text, layer, height=None, presentation=None, anchor_point=None):
         """Add text to this cell and return the corresponding object.
 
-        :param origin: a point representing the origin of the text object, which appears to be to the upper left of
-                       where the text begins.
-        :type origin: numpy.ndarray
+        The keyword arguments ``presentation`` and ``anchor_point`` both refer to the same property of the text,
+        namely is the position of the text relative to the given origin. The :meth:`getPresentation` and
+        :meth:`setPresentation` methods of a ``LayoutEditor.element`` return and set the value. The default value is
+        0, which corresponds to an anchor point near the upper left corner of a full-height capital letter,
+        'upper left' when specified as a string. To use a value different from the LayoutScript default,
+        provide either 'presentation' or 'anchor_point',  but not both.
+
+        This is the mapping between 'anchor_point' and 'presentation'::
+
+        - 'upper left': 0,
+        - 'upper center': 1,
+        - 'upper right': 2,
+        - 'center left': 3,
+        - 'center center': 4,
+        - 'center right': 5,
+        - 'lower left': 6,
+        - 'lower center': 7,
+        - 'lower right': 8.
+
+        :param indexable origin: a point representing the origin, or anchor point, of the text.
         :param str text: the text to be displayed.
         :param int layer: the layer on which to create the text.
         :param height: the height of the text; positive values are interpreted as user units, negative values create
                        a fixed height in pixels, and the default uses the current default.
         :type height: float or int
+        :param presentation: the anchor point of the text as an integer; see above.
+        :type presentation: int or None
+        :param anchor_point: the anchor point of the text as a string; see above.
+        :type anchor_point: str or None
         :return: the new text.
         :rtype: Text
+        :raises ValueError: if an invalid value for ``presentation`` or ``anchor_point`` is given, or if both are given.
         """
         ls_text = self.ls.addText(int(layer), self.drawing._np_to_layoutscript(to_point(origin)), str(text))
         text_ = Text(ls_text, self.drawing)
         if height is not None:
             text_.height = height
+        if presentation is not None and anchor_point is not None:
+            raise ValueError("Specify at most one of 'presentation' and 'anchor_point'.")
+        elif presentation is not None:
+            text_.presentation = presentation
+        elif anchor_point is not None:
+            text_.anchor_point = anchor_point
         return text_
 
 
@@ -675,10 +755,9 @@ class Element(object):
     def points(self, points):
         self.ls.setPoints(self.drawing._to_point_array(points))
 
-    # ToDo: figure out what this means...
     @property
     def data_type(self):
-        """Every Element has an integer datatype attribute, which typically equals 0."""
+        """Every Element has an integer data type attribute, part of the GDSII standard, which equals 0 by default."""
         return self.ls.getDatatype()
 
     @data_type.setter
@@ -765,29 +844,29 @@ class LayerElement(Element):
         self.ls.layerNum = int(layer)
 
 
-# ToDo: figure out ls_element type
 class CellElement(Element):
     """This class adds a cell attribute to Element."""
 
     def __init__(self, ls_element, drawing):
         """
-        :param ls_element:
-        :type ls_element: LayoutScript.what?
-        :param drawing: the drawing to which the
+        :param ls_element: the cell reference object for which :meth:`isCellRef` or :meth:`isCellRefArray` is True.
+        :type ls_element: ``LayoutScript.element``
+        :param drawing: the drawing to which the element belongs.
         :type drawing: Drawing
         """
         super(CellElement, self).__init__(ls_element, drawing)
         self.cell = Cell(ls_element.depend(), drawing)
 
 
-# ToDo: finish adding comments below
 class Cellref(CellElement):
+    """Wrap a ``LayoutScript.element`` that is a ``Cellref``, a reference to another cell."""
 
     def __str__(self):
-        return 'Cell {} at ({:.3f}, {:.3f})'.format(self.cell.name, self.origin[0], self.origin[1])
+        return 'Cell "{name}" at ({x:.3f}, {y:.3f})'.format(name=self.cell.name, x=self.origin[0], y=self.origin[1])
 
     @property
     def origin(self):
+        """A point that is origin of the referenced cell."""
         return self.points[0]
 
     @origin.setter
@@ -796,30 +875,36 @@ class Cellref(CellElement):
 
 
 class CellrefArray(CellElement):
+    """Wrap a ``LayoutScript.element`` that is a ``CellrefArray``, a reference to an array of another cell."""
 
     def __str__(self):
-        return 'Cell {}: {} {} by {}'.format(self.cell.name, self.points, self.repeat_x, self.repeat_y)
+        return 'CellrefArray "{name}": {points}, {nx} by {ny}'.format(
+            name=self.cell.name, points=self.points, nx=self.repeat_x, ny=self.repeat_y)
+
+    # These methods translate the points between the LayoutScript convention and the GUI convention
 
     @staticmethod
-    def _to_pylayout(points):
+    def _to_layoutscript(points):
         origin, step_x, step_y = points
         return [origin, step_x + origin, step_y + origin]
 
     @staticmethod
-    def _from_pylayout(points):
+    def _from_layoutscript(points):
         origin, ls_x, ls_y = points
         return [origin, ls_x - origin, ls_y - origin]
 
     @property
     def points(self):
-        return self._from_pylayout(self.drawing._to_list_of_numpy_arrays(self.ls.getPoints()))
+        """A list of three points: the :attr:`origin`, :attr:`step_x`, and :attr:`step_y`."""
+        return self._from_layoutscript(self.drawing._to_list_of_numpy_arrays(self.ls.getPoints()))
 
     @points.setter
     def points(self, points):
-        self.ls.setPoints(self.drawing._to_point_array(self._to_pylayout(points)))
+        self.ls.setPoints(self.drawing._to_point_array(self._to_layoutscript(points)))
 
     @property
     def origin(self):
+        """A point that is the origin of the cell reference array."""
         return self.points[0]
 
     @origin.setter
@@ -828,6 +913,7 @@ class CellrefArray(CellElement):
 
     @property
     def step_x(self):
+        """A point that is the vector difference between elements in adjacent columns; the 'step x' point in the GUI."""
         return self.points[1]
 
     @step_x.setter
@@ -840,10 +926,12 @@ class CellrefArray(CellElement):
 
     @step_y.setter
     def step_y(self, step_y):
+        """A point that is the vector difference between elements in adjacent rows, the 'step y' point in the GUI."""
         self.points = [self.points[0], self.points[1], to_point(step_y)]
 
     @property
     def repeat_x(self):
+        """The integer number of columns; equals 'repeat x' in the GUI dialog."""
         return self.ls.getNx()
 
     @repeat_x.setter
@@ -852,6 +940,7 @@ class CellrefArray(CellElement):
 
     @property
     def repeat_y(self):
+        """The integer number of rown; equals 'repeat x' in the GUI dialog."""
         return self.ls.getNy()
 
     @repeat_y.setter
@@ -860,9 +949,15 @@ class CellrefArray(CellElement):
 
 
 class Box(LayerElement):
+    """Wrap a ``LayoutScript.element`` that is a ``Box``.
+
+    Note that boxes are part of the GDSII standard but some photomask manufacturers will reject designs containing them
+    or will convert them to polygons.
+    """
 
     @property
     def _points(self):
+        """Extract the values used by the GUI from the two stored points, the upper left and lower right corners."""
         (x_upper_left, y_upper_left), (x_lower_right, y_lower_right) = self.points
         x = x_upper_left
         y = y_lower_right
@@ -872,27 +967,27 @@ class Box(LayerElement):
 
     @property
     def x(self):
-        """The x-coordinate of the origin, currently read-only."""
+        """The x-coordinate of the origin (``float`` or ``int``, read-only)."""
         return self._points[0]
 
     @property
     def y(self):
-        """The y-coordinate of the origin, currently read-only."""
+        """The y-coordinate of the origin (``float`` or ``int``, read-only)."""
         return self._points[1]
 
     @property
     def width(self):
-        """The horizontal extent measured from the origin, currently read-only."""
+        """The horizontal extent measured from the origin (``float`` or ``int``, read-only)."""
         return self._points[2]
 
     @property
     def height(self):
-        """The vertical extent measured from the origin, currently read-only."""
+        """The vertical extent measured from the origin (``float`` or ``int``, read-only)."""
         return self._points[3]
 
     @property
     def perimeter(self):
-        """The perimeter of the box."""
+        """The perimeter of the box (``float`` or ``int``, read-only)."""
         return 2 * self.width + 2 * self.height
 
 
@@ -941,10 +1036,7 @@ class Path(LayerElement):
 
     @property
     def length(self):
-        """Return the length of the path in user units, not including the caps.
-
-        :return: the path length
-        """
+        """The length of the path in user units, not including the caps (``float`` or ``int``)."""
         x, y = np.vstack(self.points).T
         return np.sum(np.hypot(np.diff(x), np.diff(y)))
 
@@ -953,9 +1045,9 @@ class Polygon(LayerElement):
 
     @property
     def perimeter(self):
-        """The perimeter of the polygon.
+        """The perimeter of the polygon (``float`` or ``int``).
 
-        For a Polygon the first and last point are always the same.
+        The first and last points of a Polygon are identical.
         """
         x, y = np.vstack(self.points).T
         return np.sum(np.hypot(np.diff(x), np.diff(y)))
@@ -968,10 +1060,9 @@ class Text(LayerElement):
 
     @property
     def text(self):
-        try:
-            return self.ls.getName().toAscii().data()  # pylayout
-        except AttributeError:
-            return self.ls.getName()  # LayoutScript
+        """The displayed text (``str``)."""
+        #return self.ls.getName().toAscii().data()  # pylayout
+        return self.ls.getName()  # LayoutScript
 
     @text.setter
     def text(self, text):
@@ -979,6 +1070,11 @@ class Text(LayerElement):
 
     @property
     def height(self):
+        """The height of the text (``float`` or ``int``).
+
+        This is the 'width' attribute in the GUI, which is slightly greater than the height of the text in the defalt
+        font, while the width varies by letter.
+        """
         return self.drawing.from_database_units(self.ls.getWidth())
 
     @height.setter
@@ -987,8 +1083,50 @@ class Text(LayerElement):
 
     @property
     def origin(self):
+        """The anchor point of the text."""
         return self.points[0]
 
     @origin.setter
     def origin(self, origin):
         self.points = [to_point(origin)]
+
+    @property
+    def presentation(self):
+        """The 'presentation' of the text, meaning the anchor point (``int``); see :attr:`anchor_point`.
+
+        The anchor point is the 'X' that appears in the GUI when selecting text. The defalt value is 0, which
+        corresponds to an anchor point near the upper left corner of the text.
+
+        :raises ValueError: if the presentation is not between 0 and 8, inclusive."""
+        return self.ls.getPresentation()
+
+    @presentation.setter
+    def presentation(self, presentation):
+        p = int(presentation)
+        if p not in TEXT_PRESENTATION_TO_ANCHOR_POINT:
+            raise ValueError("The value must be between 0 and 8, inclusive.")
+        self.ls.setPresentation(p)
+
+    @property
+    def anchor_point(self):
+        """The anchor point of the text (``str``); see :attr:`presentation`.
+
+        This is the mapping between 'anchor_point' and 'presentation'::
+
+        - 'upper left': 0,
+        - 'upper center': 1,
+        - 'upper right': 2,
+        - 'center left': 3,
+        - 'center center': 4,
+        - 'center right': 5,
+        - 'lower left': 6,
+        - 'lower center': 7,
+        - 'lower right': 8.
+
+        :raises ValueError: if the anchor point is set to a value not listed above.
+        """
+        return TEXT_PRESENTATION_TO_ANCHOR_POINT[self.presentation]
+
+    @anchor_point.setter
+    def anchor_point(self, anchor_point):
+        self.presentation = TEXT_ANCHOR_POINT_TO_PRESENTATION[anchor_point]
