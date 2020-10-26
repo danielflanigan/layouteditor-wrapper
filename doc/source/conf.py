@@ -11,14 +11,12 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-import os
+#import os
 import pkg_resources
-import sys
-
-import setuptools_scm
+#import sys
 
 # For ReadTheDocs
-sys.path.insert(0, os.path.abspath('../../source'))
+#sys.path.insert(0, os.path.abspath('../../source'))
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +25,7 @@ copyright = '2020, Daniel Flanigan'
 author = 'Daniel Flanigan'
 
 # The full version, including alpha/beta/rc tags
-release = setuptools_scm.get_version(relative_to=pkg_resources.require('layouteditor-wrapper')[0].location)
+release = pkg_resources.require('layouteditor-wrapper')[0].version
 # The short X.Y version
 version = release[:release.find('.', 2)]
 
