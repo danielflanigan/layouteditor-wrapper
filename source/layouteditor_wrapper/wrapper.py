@@ -1047,7 +1047,7 @@ class Polygon(LayerElement):
     def perimeter(self):
         """The perimeter of the polygon (``float`` or ``int``).
 
-        The first and last points of a Polygon are identical.
+        The first and last points of a Polygon are identical, so there are N ways to specify a Polygon with N points.
         """
         x, y = np.vstack(self.points).T
         return np.sum(np.hypot(np.diff(x), np.diff(y)))
@@ -1062,7 +1062,7 @@ class Text(LayerElement):
     def text(self):
         """The displayed text (``str``)."""
         #return self.ls.getName().toAscii().data()  # pylayout
-        return self.ls.getName()  # LayoutScript
+        return self.ls.getName()
 
     @text.setter
     def text(self, text):
@@ -1072,7 +1072,7 @@ class Text(LayerElement):
     def height(self):
         """The height of the text (``float`` or ``int``).
 
-        This is the 'width' attribute in the GUI, which is slightly greater than the height of the text in the defalt
+        This is the 'width' attribute in the GUI, which is slightly greater than the height of the text in the default
         font, while the width varies by letter.
         """
         return self.drawing.from_database_units(self.ls.getWidth())
@@ -1094,7 +1094,7 @@ class Text(LayerElement):
     def presentation(self):
         """The 'presentation' of the text, meaning the anchor point (``int``); see :attr:`anchor_point`.
 
-        The anchor point is the 'X' that appears in the GUI when selecting text. The defalt value is 0, which
+        The anchor point is the 'X' that appears in the GUI when selecting text. The default value is 0, which
         corresponds to an anchor point near the upper left corner of the text.
 
         :raises ValueError: if the presentation is not between 0 and 8, inclusive."""
@@ -1129,4 +1129,7 @@ class Text(LayerElement):
 
     @anchor_point.setter
     def anchor_point(self, anchor_point):
-        self.presentation = TEXT_ANCHOR_POINT_TO_PRESENTATION[anchor_point]
+        try:
+            self.presentation = TEXT_ANCHOR_POINT_TO_PRESENTATION[anchor_point]
+        except KeyError:
+            raise ValueError("Must be one of {}".format(list(TEXT_ANCHOR_POINT_TO_PRESENTATION.keys())))
