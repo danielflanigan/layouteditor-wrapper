@@ -134,13 +134,20 @@ class Layout(object):
 
     def save_as(self, filename):
         """Save the current layout to the given filename."""
-        self.ls.saveAs(filename)
+        # Maybe this is actually interactive?
+        #self.ls.saveAs(filename)
+        self.filename = filename
+        self.save()
 
     # ToDo: can this be set?
     @property
     def filename(self):
         """The filename used to load the current layout from disk, or an empty string if it was never loaded."""
         return self.ls.filename
+
+    @filename.setter
+    def filename(self, filename):
+        self.ls.filename = filename
 
 
 class Drawing(object):
