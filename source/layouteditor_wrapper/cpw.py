@@ -278,7 +278,7 @@ class Mesh(object):
             phi = np.arctan2(v[1], v[0])
             R = np.array([[np.cos(phi), -np.sin(phi)],
                           [np.sin(phi), np.cos(phi)]])
-            num_mesh_columns = np.floor(length / self.mesh_spacing)
+            num_mesh_columns = int(np.floor(length / self.mesh_spacing))
             if num_mesh_columns == 0:
                 continue
             elif num_mesh_columns == 1:
@@ -296,7 +296,7 @@ class Mesh(object):
                 if radius < self.mesh_spacing / 2:
                     continue
                 for angle, corner, offset in zip(self.angles, self.corners, self.offsets):
-                    num_points = np.round(radius * np.abs(angle) / self.mesh_spacing)
+                    num_points = int(np.round(radius * np.abs(angle) / self.mesh_spacing))
                     if num_points == 1:
                         max_angle = 0
                     else:
@@ -320,7 +320,7 @@ class Mesh(object):
                       [np.sin(phi), np.cos(phi)]])
         start_to_first_row = self.start_width / 2 + self.start_gap + self.start_mesh_border
         difference_to_first_row = self.end_width / 2 + self.end_gap + self.end_mesh_border - start_to_first_row
-        num_mesh_columns = np.floor(length / self.mesh_spacing)
+        num_mesh_columns = int(np.floor(length / self.mesh_spacing))
         if num_mesh_columns == 0:
             return []
         elif num_mesh_columns == 1:
