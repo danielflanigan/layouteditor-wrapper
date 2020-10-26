@@ -15,7 +15,7 @@ import os
 import pkg_resources
 import sys
 
-# For ReadTheDocs
+# For ReadTheDocs: this seems to be necessary even when the package is installed with pip.
 sys.path.insert(0, os.path.abspath('../../source'))
 
 # -- Project information -----------------------------------------------------
@@ -84,7 +84,6 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'includehidden': False,
     'titles_only': True,
