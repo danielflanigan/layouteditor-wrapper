@@ -161,16 +161,16 @@ class Drawing(object):
     def __init__(self, ls_drawing, use_user_unit=True, auto_number=False, validate_cell_names=True):
         """Create a new :class:`Drawing` object from the given :class:`LayoutScript.drawingField` object.
 
-        All of the :mod:`LayoutScript` classes expect and return integer database units. However, this class interface can
-        instead use the float user units, which are often more convenient. For example, if the database units are nm
-        and the user units are µm, then if :attr:`use_user_unit` is True then all class methods will expect and return
-        length values in µm. If it is False, then all class methods will expect and return length values in nm. The
-        underlying data are always saved as integers in database units, so these must be small enough for the desired
-        precision.
+        All of the :mod:`LayoutScript` classes expect and return integer database units. However, this class
+        interface can instead use the :class:`float` user units, which are often more convenient. For example,
+        if the database units are nm and the user units are µm, then if :attr:`use_user_unit` is True then all class
+        methods will expect and return length values in µm. If it is False, then all class methods will expect and
+        return length values in nm. The underlying data are always saved as integers in database units, so these must
+        be small enough for the desired precision.
 
         :param LayoutScript.drawingField ls_drawing: the drawing instance to wrap.
         :param bool use_user_unit: if True, all values input to and returned from this instance are in user units
-                                   (float); if False, they are in database units (int).
+                                   (:class:`float`); if False, they are in database units (:class:`int`).
         :param bool auto_number: if True, the `add_cell` method ensures unique cell names by appending an integer to the
                                  names of all cells it creates in this drawing.
         :param bool validate_cell_names: if True, check that the new cell name (after auto-numbering, if applicable) is
@@ -185,7 +185,7 @@ class Drawing(object):
 
     @property
     def database_unit(self):
-        """The physical length of the database unit in meters (:class:`float`); the default seems to be 1e-9, or 1 nm."""
+        """The physical length of the database unit in meters (:class:`float`); the default is 1e-9, or 1 nm."""
         return self.ls.databaseunits
 
     @database_unit.setter
@@ -210,10 +210,10 @@ class Drawing(object):
         either the user unit (default) or the database unit, to database units.
 
         The behavior depends on the attribute :attr:`use_user_unit` (:meth:`~Drawing.__init__` default is True):
-        - if True, return the given value scaled from user units to database units then rounded and cast to int;
-        - if False, return the given value or array rounded and cast to int.
+        - if True, return value(s) scaled from user units to database units then rounded and cast to :class:`int`;
+        - if False, return value(s) rounded and cast to :class:`int`.
 
-        This method and its companion :meth:`~Drawing.from_database_units` are the only places where values should be
+        This method and its companion :meth:`from_database_units` are the only places where values should be
         converted to and from database units.
 
         :param value_or_array: a value or array to be converted to the integer database units.
@@ -241,11 +241,11 @@ class Drawing(object):
         either the user unit (default) or the database unit.
 
         The behavior depends on the attribute :attr:`use_user_unit` (:meth:`__init__` default is True):
-        - if True, return the given values scaled from database units to user units, as floats;
-        - if False, return the given values simply cast to int, which they should already be.
+        - if True, return the given values scaled from database units to user units, as :class:`float`;
+        - if False, return the given values simply cast to :class:`int`, which they should already be.
 
-        This method and its companion :meth:`~Drawing.to_database_units` are the only places where values should be
-        converted to and from database units.
+        This method and its companion :meth:`to_database_units` are the only places where values should be converted
+        to and from database units.
 
         :param value_or_array: the value or array to convert.
         :type value_or_array: int or numpy.ndarray[int]
@@ -273,16 +273,21 @@ class Drawing(object):
 
     @property
     def cells(self):
-        """An OrderedDict that maps all cell names (:class:`str`) in the layout to :class:`Cell` instances (read-only).
+        """An :class:`OrderedDict` that maps cell names (:class:`str`) to :class:`Cell` instances (read-only).
 
-        Modifications to the returned OrderedDict are **not** propagated back to the layout. To add a cell to the
-        drawing use :meth:`~Drawing.add_cell`, to delete a cell from the drawing use :meth:`~Drawing.delete_cell`, and
-        to change the name of a cell assign the new name to :attr:`~Cell.name`. Modifications to the layout are **not**
-        propagated to the returned OrderedDict, and this property must be accessed again to obtain an updated mapping.
+        Modifications to the returned :class:`OrderedDict` are **not** propagated back to the layout. To add a cell
+        to the drawing use :meth:`add_cell`, to delete a cell from the drawing use :meth:`delete_cell`, and to change
+        the name of a cell assign the new name to :attr:`~Cell:name`. Modifications to the layout are **not**
+        propagated to the returned :class:`OrderedDict`, and this property must be accessed again to obtain an
+        updated mapping.
 
-        :mod:`LayoutScript` uses a linked list to store its cell instances. (``drawing.thisCell`` -> ``cellList``,
-        ``cellList.thisCell`` -> ``cell``, ``cellList.nextCell`` -> ``cellList`` or None.) New cells are prepended to
-        the internal linked list, so the index of a cell changes as new cells are added.
+        :mod:`LayoutScript` uses a linked list to store its cell instances:
+
+        - :class:`LayoutScript.drawing.firstCell` (and :attr:`currentCell`) -> :class:`LayoutScript.cellList`;
+        - :class:`LayoutScript.cellList.thisCell` -> :class:`LayoutScript.cell`;
+        - :class:`LayoutScript.cellList.nextCell` -> :class:`LayoutScript.cellList` or None for the final link.
+
+        New cells are prepended to the internal linked list, so the index of a cell changes as new cells are added.
 
         Note that LayoutEditor forbids changing the name of a cell to an existing name but :mod:`LayoutScript` does
         not. This module attempts to enforce unique cell names, so the mapping returned by this method should always
@@ -522,7 +527,7 @@ class Cell(object):
     def add_cell(self, cell, origin, angle=0):
         """Add a single cell to this cell.
 
-        The origin coordinates are expected to be floats in user units if use_user_unit is True, and ints in database
+        The origin coordinates are expected to be :class:`float` in user units if use_user_unit is True, and :class:`int` in database
         units if it is False.
 
         :param Cell cell: the cell object to add to this cell.
@@ -539,8 +544,8 @@ class Cell(object):
     def add_cell_array(self, cell, origin=(0, 0), step_x=(0, 0), step_y=(0, 0), repeat_x=1, repeat_y=1, angle=0):
         """Return a :class:`CellrefArray` produced by adding to this cell an array of the given cells.
 
-        The coordinates of the origin and step points are expected to be floats in user units if
-        :attr:`Drawing.use_user_unit` is True, and ints in database units if it is False.
+        The coordinates of the origin and step points are expected to be :class:`float` in user units if
+        :attr:`Drawing.use_user_unit` is True, and :class:`int` in database units if it is False.
 
         :param Cell cell: the Cell object to use to create the CellrefArray in this cell.
         :param indexable origin: a point containing the origin x- and y-coordinates.
@@ -568,8 +573,8 @@ class Cell(object):
     def add_box(self, x, y, width, height, layer):
         """Add a rectangular box to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
-        and ints in database units if it is False.
+        All length values are expected to be :class:`float` in user units if :attr:`Drawing.use_user_unit` is True,
+        and :class:`int` in database units if it is False.
 
         :param x: the x-coordinate of the origin.
         :type x: float or int
@@ -598,8 +603,8 @@ class Cell(object):
     def add_circle(self, origin, radius, layer, number_of_points=0):
         """Add a circular polygon to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
-        and ints in database units if it is False. Note that :mod:`LayoutScript` considers any regular polygon with 8 or
+        All length values are expected to be :class:`float` in user units if :attr:`Drawing.use_user_unit` is True,
+        and :class:`int` in database units if it is False. Note that :mod:`LayoutScript` considers any regular polygon with 8 or
         more points to be a circle, and once created a circle has no special properties.
 
         :param origin: a point containing the (x, y) coordinates of the circle center.
@@ -620,8 +625,8 @@ class Cell(object):
     def add_polygon(self, points, layer):
         """Add a polygon to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
-        and ints in database units if it is False. If the given list of points does not close, :mod:`LayoutScript` will
+        All length values are expected to be :class:`float` in user units if :attr:`Drawing.use_user_unit` is True,
+        and :class:`int` in database units if it is False. If the given list of points does not close, :mod:`LayoutScript` will
         automatically add the first point to the end of the point list in order to close it.
 
         :param points: an iterable of points that are the vertices of the polygon.
@@ -636,8 +641,8 @@ class Cell(object):
     def add_polygon_arc(self, center, inner_radius, outer_radius, layer, start_angle=0, stop_angle=0):
         """Add a polygon in the shape of a full or partial annulus to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
-        and ints in database units if it is False. The default start and stop angles create an arc that touches
+        All length values are expected to be :class:`float` in user units if :attr:`Drawing.use_user_unit` is True,
+        and :class:`int` in database units if it is False. The default start and stop angles create an arc that touches
         itself, forming a full annulus. The angles are taken mod 360, so it is not possible to create a polygon that
         overlaps itself.
 
@@ -662,8 +667,8 @@ class Cell(object):
     def add_path(self, points, layer, width=None, cap=None):
         """Add a path to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
-        and ints in database units if it is False. A path may be closed or open, and may have one of three styles of
+        All length values are expected to be :class:`float` in user units if :attr:`Drawing.use_user_unit` is True,
+        and :class:`int` in database units if it is False. A path may be closed or open, and may have one of three styles of
         end cap.
 
         :param points: an iterable of points that are the vertices of the path.
@@ -1017,12 +1022,12 @@ class Circle(LayerElement):
 
     @property
     def radius(self):
-        """The radius of the circle (float, read-only)."""
+        """The radius of the circle (:class:`float`, read-only)."""
         return np.sqrt(np.sum((self.points[0] - self.center) ** 2))
 
     @property
     def perimeter(self):
-        """The perimeter of the circle (float, read-only)."""
+        """The perimeter of the circle (:class:`float`, read-only)."""
         x, y = np.vstack(self.points).T
         return np.sum(np.hypot(np.diff(x), np.diff(y)))
 
@@ -1032,7 +1037,7 @@ class Path(LayerElement):
     # ToDo: does this need to be converted to user units?
     @property
     def width(self):
-        """The width of the path (float or int); note that zero-width paths are allowed."""
+        """The width of the path (:class:`float` or :class:`int`); note that zero-width paths are allowed."""
         return self.ls.getWidth()
 
     @width.setter
