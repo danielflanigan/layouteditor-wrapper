@@ -1,20 +1,20 @@
-"""This module is a wrapper for LayoutScript, the Python module of LayoutEditor.
+"""This module is a wrapper for :mod:`LayoutScript`, the Python module of LayoutEditor.
 
-This module includes several types of objects that each wrap a LayoutScript object. The naming conventions for
-LayoutScript objects are the following: in methods and functions, LayoutScript objects have a ``ls_`` prefix; as
-attributes of wrapper classes, the attribute ``.ls`` is the wrapped object. For example, the constructor for Cell
-includes ``ls_cell``, which is a ``LayoutScript.cell`` object; also, if cell is a
-:class:`~layouteditor_wrapper.wrapper.Cell` object, then ``cell.ls`` is the wrapped ``LayoutScript.cell`` object.
+This module includes several types of objects that each wrap a :mod:`LayoutScript` object, with the following naming
+conventions. As arguments of methods and functions, :mod:`LayoutScript` objects have a :obj:`ls_` prefix; as attributes
+of wrapper classes, the attribute :attr:`ls` is the wrapped object. For example, the constructor for :class:`Cell`
+includes :obj:`ls_cell`, which is a :class:`LayoutScript.cell` object, and if :obj:`cell` is the :class:`Cell` instance
+then :attr:`cell.ls` is the wrapped :class:`LayoutScript.cell` instance.
 
 Where possible, the classes use the same conventions and notation as the LayoutEditor GUI, which sometimes differ
-from from those used by LayoutScript. For example, this interface by default expresses lengths in terms of the user
-unit, like the GUI, but can also use the integer database units, like LayoutScript.
+from from those used by :mod:`LayoutScript`. For example, this interface by default expresses lengths in terms of the
+user unit, like the GUI, but can also use the integer database units, like :mod:`LayoutScript`.
 
-The classes representing the objects in a drawing are nearly-stateless wrappers for the underlying LayoutScript objects.
-The wrapper class methods and properties do not have any attributes of their own, but just provide an interface to the
-LayoutScript objects. Since the wrappers store no state, there is no need for them to be unique.
-For example, every call to :meth:`Drawing.cells <layouteditor_wrapper.wrapper.Drawing.cells>` generates a new list of
-:class:`~layouteditor_wrapper.wrapper.Cell` objects.  These can be cached for speed, if necessary.
+The classes representing the objects in a drawing are nearly-stateless wrappers for the underlying
+:mod:`LayoutScript` objects. The wrapper class methods and properties do not have any attributes of their own,
+but just provide an interface to the :mod:`LayoutScript` objects. Since the wrappers store no state, there is no need
+for them to be unique. For example, every call to :meth:`Drawing.cells` generates a new list of :class:`Cell`
+objects.  These can be cached for speed, if necessary.
 
 In method docstrings the word *point* refers to a point with two coordinates. Internally, the classes use numpy arrays
 with shape ``(2,)``, but their methods accept anything that allows ``point[0]`` and ``point[1]`` to be indexed, such as
@@ -71,8 +71,11 @@ TEXT_ANCHOR_POINT_TO_PRESENTATION = {'upper left': 0,
 def to_point(indexable):
     """Return a package-format point, a numpy ndarray with shape ``(2,)`` containing (x, y) coordinates.
 
-    :param indexable indexable: an indexable object with integer indices 0 and 1, such as a two-element tuple.
-    :return: an array with shape (2,) containing the values at these two indices.
+    All methods in this package use this function to convert input points to the package format, so they should all
+    accept two-element tuples, which are easier to type.
+
+    :param indexable indexable: an indexable object with integer indices 0 and 1.
+    :return: an array with shape ``(2,)`` containing the values at these two indices.
     :rtype: numpy.ndarray
     """
     return np.array([indexable[0], indexable[1]])
@@ -81,7 +84,7 @@ def to_point(indexable):
 def to_point_list(iterable):
     """Return a list of package-format points from using :func:`to_point` on each element of the given iterable.
 
-    This function accepts, for example, a list of two-element tuples.
+    This function accepts, for example, a list of two-element tuples or a :class:`numpy.ndarray` with shape ``(n, 2)``.
 
     :param iterable[indexable] iterable: an iterable of indexable objects that all have integer indices 0 and 1.
     :return: a list of arrays with shape ``(2,)`` containing (x, y) coordinates.
@@ -91,14 +94,14 @@ def to_point_list(iterable):
 
 
 def instantiate_element(ls_element, drawing):
-    """Instantiate and return the appropriate :class:`Element` subclass for the given LayoutScript element type.
+    """Instantiate and return the appropriate :class:`Element` subclass for the given :class:`LayoutScript.element`.
 
-    :param ls_element: a LayoutScript element object.
+    :param ls_element: the element to wrap.
     :type ls_element: LayoutScript.element
     :param Drawing drawing: a Drawing object.
-    :return: a wrapper for the LayoutScript element, one of :class:`Box`, :class:`Cellref`, :class:`CellrefArray`,
-             :class:`Circle`, :class:`Path`, :class:`Polygon`, or :class:`Text`.
-    :rtype: :class:`~layouteditor_wrapper.wrapper.Element`
+    :return: a wrapper for the :mod:`LayoutScript` element.
+    :rtype: :class:`Box`, :class:`Cellref`, :class:`CellrefArray`, :class:`Circle`, :class:`Path`, :class:`Polygon`,
+            or :class:`Text`
     """
     elements = (Box, Cellref, CellrefArray, Circle, Path, Polygon, Text)
     for element in elements:
@@ -108,14 +111,14 @@ def instantiate_element(ls_element, drawing):
 
 
 class Layout(object):
-    """Wrap a ``LayoutScript.layout`` object."""
+    """Wrap a :class:`LayoutScript.layout` object."""
 
     def __init__(self):
-        """Instantiate a new Layout, which creates a new LayoutScript layout."""
+        """Create and wrap a new :mod:`LayoutScript` layout."""
         self.ls = ls.project.newLayout()
 
     def drawing(self, use_user_unit=True, auto_number=False):
-        """Return a :class:`Drawing` object that wraps the current ``LayoutScript.drawing`` object."""
+        """Return a :class:`Drawing` object that wraps the current :class:`LayoutScript.drawing` object."""
         return Drawing(self.ls.drawing, use_user_unit=use_user_unit, auto_number=auto_number)
 
     def load(self, filename):
@@ -142,7 +145,9 @@ class Layout(object):
     # ToDo: can this be set?
     @property
     def filename(self):
-        """The filename used to load the current layout from disk, or an empty string if it was never loaded."""
+        """The filename used to load the current layout from disk, or the empty string if it was never loaded
+        (:class:`str`).
+        """
         return self.ls.filename
 
     @filename.setter
@@ -151,20 +156,19 @@ class Layout(object):
 
 
 class Drawing(object):
-    """Wrap a ``LayoutScript.drawingField`` object."""
+    """Wrap a :class:`LayoutScript.drawingField` object."""
 
     def __init__(self, ls_drawing, use_user_unit=True, auto_number=False, validate_cell_names=True):
-        """Create a new Drawing object from the given ``LayoutScript.drawingField`` object.
+        """Create a new :class:`Drawing` object from the given :class:`LayoutScript.drawingField` object.
 
-        All of the LayoutScript classes expect and return integer database units. However, this class interface can
+        All of the :mod:`LayoutScript` classes expect and return integer database units. However, this class interface can
         instead use the float user units, which are often more convenient. For example, if the database units are nm
-        and the user units are µm, then if use_use_unit is True then all class methods will expect and return length
-        values in µm. If it is False, then all class methods will expect and return length values in nm. The
+        and the user units are µm, then if :attr:`use_user_unit` is True then all class methods will expect and return
+        length values in µm. If it is False, then all class methods will expect and return length values in nm. The
         underlying data are always saved as integers in database units, so these must be small enough for the desired
         precision.
 
-        :param ls_drawing: the drawing instance to wrap.
-        :type ls_drawing: LayoutScript.drawingField
+        :param LayoutScript.drawingField ls_drawing: the drawing instance to wrap.
         :param bool use_user_unit: if True, all values input to and returned from this instance are in user units
                                    (float); if False, they are in database units (int).
         :param bool auto_number: if True, the `add_cell` method ensures unique cell names by appending an integer to the
@@ -181,7 +185,7 @@ class Drawing(object):
 
     @property
     def database_unit(self):
-        """The physical length of the database unit in meters (``float``); the default seems to be 1e-9, or 1 nm."""
+        """The physical length of the database unit in meters (:class:`float`); the default seems to be 1e-9, or 1 nm."""
         return self.ls.databaseunits
 
     @database_unit.setter
@@ -190,7 +194,7 @@ class Drawing(object):
 
     @property
     def user_unit(self):
-        """The ratio of the database unit to the user unit (``float``).
+        """The ratio of the database unit to the user unit (:class:`float`).
 
         All points are saved as integer values in database units, so this number is the data resolution in user units.
         For example, if the database units are nm and the user units are µm, then this value is 0.001 = 1 nm / 1 µm.
@@ -202,10 +206,10 @@ class Drawing(object):
         self.ls.userunits = unit
 
     def to_database_units(self, value_or_array):
-        """Return the given value or array converted from the units used by the Drawing, which may be
+        """Return the given value or array converted from the units used by the drawing, which may be
         either the user unit (default) or the database unit, to database units.
 
-        The behavior depends on the attribute ``use_user_unit`` (:meth:`~Drawing.__init__` default is True):
+        The behavior depends on the attribute :attr:`use_user_unit` (:meth:`~Drawing.__init__` default is True):
         - if True, return the given value scaled from user units to database units then rounded and cast to int;
         - if False, return the given value or array rounded and cast to int.
 
@@ -236,7 +240,7 @@ class Drawing(object):
         """Return the given value or array converted from database units to the units used by the Drawing, which may be
         either the user unit (default) or the database unit.
 
-        The behavior depends on the attribute ``use_user_unit`` (:meth:`~Drawing.__init__` default is True):
+        The behavior depends on the attribute :attr:`use_user_unit` (:meth:`__init__` default is True):
         - if True, return the given values scaled from database units to user units, as floats;
         - if False, return the given values simply cast to int, which they should already be.
 
@@ -269,19 +273,20 @@ class Drawing(object):
 
     @property
     def cells(self):
-        """An OrderedDict that maps all the cell names (``str``) in the layout to :class:`Cell` instances (read-only).
+        """An OrderedDict that maps all cell names (:class:`str`) in the layout to :class:`Cell` instances (read-only).
 
         Modifications to the returned OrderedDict are **not** propagated back to the layout. To add a cell to the
         drawing use :meth:`~Drawing.add_cell`, to delete a cell from the drawing use :meth:`~Drawing.delete_cell`, and
         to change the name of a cell assign the new name to :attr:`~Cell.name`. Modifications to the layout are **not**
         propagated to the returned OrderedDict, and this property must be accessed again to obtain an updated mapping.
 
-        LayoutScript uses a linked list to store its cell instances. (``drawing.thisCell`` -> ``cellList``,
+        :mod:`LayoutScript` uses a linked list to store its cell instances. (``drawing.thisCell`` -> ``cellList``,
         ``cellList.thisCell`` -> ``cell``, ``cellList.nextCell`` -> ``cellList`` or None.) New cells are prepended to
         the internal linked list, so the index of a cell changes as new cells are added.
 
-        Note that LayoutEditor forbids changing the name of a cell to an existing name but LayoutScript does not. This
-        module attempts to enforce unique cell names, so the mapping returned by this method should always be valid.
+        Note that LayoutEditor forbids changing the name of a cell to an existing name but :mod:`LayoutScript` does
+        not. This module attempts to enforce unique cell names, so the mapping returned by this method should always
+        be valid.
         """
         n_cells = 0
         cell_dict = OrderedDict()
@@ -318,28 +323,31 @@ class Drawing(object):
         """Create and return a point object (without adding it to the drawing) with the coordinates scaled to integer
         database units.
 
-        :param array: a two-element array containing the x- and y-coordinates of the point in either user units or
-        database units; see documentation for `use_user_unit` in ` __init__`.
-        :type array: numpy.ndarray
-        :return: LayoutScript.point
+        :param numpy.ndarray array: a two-element array containing the x- and y-coordinates of the point in either user
+                                    units or database units; see documentation for :attr:`use_user_unit` in
+                                    :meth:`__init__`.
+        :return: the point converted from package format to :mod:`LayoutScript` format.
+        :rtype: LayoutScript.point
         """
         return ls.point(int(self.to_database_units(array[0])), int(self.to_database_units(array[1])))
 
     def _layoutscript_to_np(self, point):
-        """Create and return a numpy.ndarray with shape ``(2,)``, with the coordinates scaled from integer database
-        units according to `use_user_unit`.
+        """Create and return a :class:`numpy.ndarray` with shape ``(2,)``, with the coordinates scaled from integer
+        database units according to :attr:`use_user_unit`.
 
-        :param point: a point containing x- and y-coordinates.
-        :type array: LayoutScript.point
-        :return: numpy.ndarray
+        :param LayoutScript.point point: a point containing x- and y-coordinates.
+        :return: the point converted from :mod:`LayoutScript` format to package format.
+        :rtype: numpy.ndarray
         """
         return self.from_database_units(np.array([point.x(), point.y()]))
 
     def _to_point_array(self, list_of_numpy_arrays):
-        """Return a ``LayoutScript.pointArray`` of ``LayoutScript.point`` objects converted from the given list of
-        numpy ndarrays with shape ``(2,)``.
+        """Return a :class`LayoutScript.pointArray` of :class:`LayoutScript.point` objects converted from the given list
+        containing :class:`numpy.ndarray` with shape ``(2,)``.
 
-        :return: LayoutScript.pointArray
+        :param list[numpy.ndarray] list_of_numpy_arrays: the list of points to convert.
+        :return: the points converted from package format to :mod:`LayoutScript` format.
+        :rtype: LayoutScript.pointArray
         """
         pa = ls.pointArray(len(list_of_numpy_arrays))
         for i, array in enumerate(list_of_numpy_arrays):
@@ -347,6 +355,13 @@ class Drawing(object):
         return pa
 
     def _to_list_of_numpy_arrays(self, point_array):
+        """Return a list containing :class:`numpy.ndarray` with shape ``(2,)``  converted from the given
+        :class`LayoutScript.pointArray` containing :class:`LayoutScript.point` objects.
+
+        :param LayoutScript.pointArray point_array: the points to convert.
+        :return: the points converted from :mod:`LayoutScript` format to package format.
+        :rtype: list[numpy.ndarray]
+        """
         array_list = []
         for i in range(point_array.size()):
             array_list.append(self._layoutscript_to_np(point_array.point(i)))
@@ -354,15 +369,16 @@ class Drawing(object):
 
     def add_cell(self, name):
         """Add an empty cell with the given name to the drawing and return a new :class:`Cell` instance that wraps a
-        ``LayoutScript.cell`` instance.
+        :class:`LayoutScript.cell` instance.
 
-        If ``auto_number`` is True, the string ``_x`` is appended to the given cell name, where x is the number of cells
-        that have been created so far by this class. This allows code to repeatedly call this method with the same name
-        string without producing an error, since the appended number usually ensures that their names will be unique.
+        If :attr:`Drawing.auto_number` is True, the string '_x' is appended to the given cell name, where x is the
+        number of cells that have been created so far by this class. This allows code to repeatedly call this method
+        with the same name string without producing an error, since the appended number usually ensures that their
+        names will be unique.
 
-        If ``validate_cell_names`` is True, check before adding the cell that the given name is not already used in the
-        drawing. This avoids corruption of the cell list at the cost of recreating and traversing the ``cells``
-        OrderedDict. Set this to False to skip this check.
+        If :attr:`Drawing.validate_cell_names` is True, check before adding the cell that the given name is not
+        already used in the drawing. This avoids corruption of the cell list at the cost of recreating and traversing
+        the :class:`OrderedDict` of :attr:`Drawing.cells`. Set this to False to skip this check.
 
         :param str name: the name of the new cell.
         :return: the new, empty cell.
@@ -387,8 +403,7 @@ class Drawing(object):
 
         The value of the current cell is unspecified after the deletion.
 
-        :param cell: the cell to delete.
-        :type cell: Cell
+        :param Cell cell: the cell to delete.
         :return: None
         :raises KeyError: if the given Cell is not in the drawing.
         """
@@ -408,7 +423,7 @@ class Drawing(object):
 
     @property
     def current_cell(self):
-        """The Cell instance that wraps the ``currentCell`` attribute of the drawing."""
+        """The :class:`Cell` instance that wraps the :attr:`LayoutScript.drawing.currentCell` attribute."""
         return Cell(ls_cell=self.ls.currentCell, drawing=self)
 
     @current_cell.setter
@@ -417,7 +432,7 @@ class Drawing(object):
 
     @property
     def current_cell_name(self):
-        """The name (``str``) of the current cell."""
+        """The name of the current cell (:class:`str`)."""
         return self.current_cell.name
 
     @current_cell_name.setter
@@ -442,21 +457,19 @@ class Drawing(object):
 
 
 class Cell(object):
-    """Wrap a ``LayoutScript.cell`` object."""
+    """Wrap a :class:`LayoutScript.cell` object."""
 
     def __init__(self, ls_cell, drawing):
         """
-        :param ls_cell: the cell object to wrap.
-        :type ls_cell: LayoutScript.cell
-        :param drawing: the drawing object that contains this cell.
-        :type drawing: LayoutScript.drawingField
+        :param LayoutScript.cell ls_cell: the cell object to wrap.
+        :param LayoutScript.drawingField drawing: the drawing object that contains this cell.
         """
         self.ls = ls_cell
         self.drawing = drawing
 
     @property
     def name(self):
-        """The name of this cell (``str``), which should be unique.
+        """The name of this cell (:class:`str`), which should be unique.
 
         :raises ValueError: if the name is changed to a name already used in the drawing.
         """
@@ -475,7 +488,7 @@ class Cell(object):
     def elements(self):
         """Generate and return a list of all elements in the cell.
 
-        Since LayoutScript elements do not have an internal name, unlike cells, there is no obvious way to create
+        Since :mod:`LayoutScript` elements do not have an internal name, unlike cells, there is no obvious way to create
         dictionary keys for them. Note that new elements are prepended to the internal linked list as they are added
         to a cell, so the index of each element is not constant.
         """
@@ -512,12 +525,10 @@ class Cell(object):
         The origin coordinates are expected to be floats in user units if use_user_unit is True, and ints in database
         units if it is False.
 
-        :param cell: the cell object to add to this cell.
-        :type cell: Cell
-        :param origin: a point containing the origin x- and y-coordinates.
-        :type origin: numpy.ndarray
+        :param Cell cell: the cell object to add to this cell.
+        :param numpy.ndarray origin: a point containing the origin x- and y-coordinates.
         :param float angle: the cell orientation in degrees.
-        :return: a Cellref object with a reference to the given Cell.
+        :return: an object with a reference to the given Cell.
         :rtype: Cellref
         """
         ls_cell = self.ls.addCellref(cell.ls, self.drawing._np_to_layoutscript(to_point(origin)))
@@ -526,21 +537,17 @@ class Cell(object):
         return cell
 
     def add_cell_array(self, cell, origin=(0, 0), step_x=(0, 0), step_y=(0, 0), repeat_x=1, repeat_y=1, angle=0):
-        """Return a CellrefArray object produced by adding to this cell an array of the given cells.
+        """Return a :class:`CellrefArray` produced by adding to this cell an array of the given cells.
 
-        The coordinates of the origin and step points are expected to be floats in user units if use_user_unit is True,
-        and ints in database units if it is False.
+        The coordinates of the origin and step points are expected to be floats in user units if
+        :attr:`Drawing.use_user_unit` is True, and ints in database units if it is False.
 
-        :param cell: the Cell object to use to create the CellrefArray in this cell.
-        :type cell: Cell
-        :param origin: a point containing the origin x- and y-coordinates.
-        :type origin: numpy.ndarray
-        :param step_x: a point containing the x- and y-increment for all cells in each row.
-        :type step_x: numpy.ndarray
-        :param step_y: a point containing the x- and y-increment for all cells in each column.
-        :type step_y: numpy.ndarray
+        :param Cell cell: the Cell object to use to create the CellrefArray in this cell.
+        :param indexable origin: a point containing the origin x- and y-coordinates.
+        :param indexable step_x: a point containing the x- and y-increment for all cells in each row.
+        :param indexable step_y: a point containing the x- and y-increment for all cells in each column.
         :param int repeat_x: the number of columns.
-        :params int repeat_y: the number of rows.
+        :param int repeat_y: the number of rows.
         :param float angle: the cell orientation in degrees.
         :return: a CellrefArray object with a reference to the given Cell.
         :rtype: CellrefArray
@@ -561,8 +568,8 @@ class Cell(object):
     def add_box(self, x, y, width, height, layer):
         """Add a rectangular box to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if use_user_unit is True, and ints in database units
-        if it is False.
+        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
+        and ints in database units if it is False.
 
         :param x: the x-coordinate of the origin.
         :type x: float or int
@@ -591,9 +598,9 @@ class Cell(object):
     def add_circle(self, origin, radius, layer, number_of_points=0):
         """Add a circular polygon to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if use_user_unit is True, and ints in database
-        units if it is False. Note that LayoutScript considers any regular polygon with 8 or more points to be a
-        circle, and once created a circle has no special properties.
+        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
+        and ints in database units if it is False. Note that :mod:`LayoutScript` considers any regular polygon with 8 or
+        more points to be a circle, and once created a circle has no special properties.
 
         :param origin: a point containing the (x, y) coordinates of the circle center.
         :type origin: numpy.ndarray
@@ -601,7 +608,7 @@ class Cell(object):
         :type radius: float or int
         :param int layer: the layer on which the circle is created.
         :param int number_of_points: the number of unique points to use in creating the circle; the default of 0 uses
-                                     the current LayoutScript default.
+                                     the current :mod:`LayoutScript` default.
         :type number_of_points: int
         :return: the new circle.
         :rtype: Circle
@@ -613,9 +620,9 @@ class Cell(object):
     def add_polygon(self, points, layer):
         """Add a polygon to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if use_user_unit is True, and ints in database
-        units if it is False. If the given list of points does not close, LayoutScript will automatically add the
-        first point to the end of the point list in order to close it.
+        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
+        and ints in database units if it is False. If the given list of points does not close, :mod:`LayoutScript` will
+        automatically add the first point to the end of the point list in order to close it.
 
         :param points: an iterable of points that are the vertices of the polygon.
         :type points: iterable
@@ -629,9 +636,10 @@ class Cell(object):
     def add_polygon_arc(self, center, inner_radius, outer_radius, layer, start_angle=0, stop_angle=0):
         """Add a polygon in the shape of a full or partial annulus to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if use_user_unit is True, and ints in database
-        units if it is False. The default start and stop angles create an arc that touches itself, forming a full
-        annulus. The angles are taken mod 360, so it is not possible to create a polygon that overlaps itself.
+        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
+        and ints in database units if it is False. The default start and stop angles create an arc that touches
+        itself, forming a full annulus. The angles are taken mod 360, so it is not possible to create a polygon that
+        overlaps itself.
 
         :param center: a point containing the (x, y) coordinates of the circle center.
         :type center: numpy.ndarray
@@ -654,8 +662,9 @@ class Cell(object):
     def add_path(self, points, layer, width=None, cap=None):
         """Add a path to this cell and return the corresponding object.
 
-        All length values are expected to be floats in user units if use_user_unit is True, and ints in database
-        units if it is False. A path may be closed or open, and may have one of three styles of end cap.
+        All length values are expected to be floats in user units if :attr:`Drawing.use_user_unit` is True,
+        and ints in database units if it is False. A path may be closed or open, and may have one of three styles of
+        end cap.
 
         :param points: an iterable of points that are the vertices of the path.
         :type points: numpy.ndarray
@@ -680,14 +689,14 @@ class Cell(object):
     def add_text(self, origin, text, layer, height=None, presentation=None, anchor_point=None):
         """Add text to this cell and return the corresponding object.
 
-        The keyword arguments ``presentation`` and ``anchor_point`` both refer to the same property of the text,
+        The keyword arguments :obj:`presentation` and :obj:`anchor_point` both refer to the same property of the text,
         namely is the position of the text relative to the given origin. The :meth:`getPresentation` and
-        :meth:`setPresentation` methods of a ``LayoutEditor.element`` return and set the value. The default value is
-        0, which corresponds to an anchor point near the upper left corner of a full-height capital letter,
-        'upper left' when specified as a string. To use a value different from the LayoutScript default,
-        provide either 'presentation' or 'anchor_point',  but not both.
+        :meth:`setPresentation` methods of a :class:`LayoutScript.element` return and set the value. The default value
+        is 0, which corresponds to an anchor point near the upper left corner of a full-height capital letter,
+        'upper left' when specified as a string. To use a value different from the :mod:`LayoutScript` default,
+        provide either :obj:`presentation` or :obj:`anchor_point`,  but not both.
 
-        This is the mapping between 'anchor_point' and 'presentation'::
+        This is the mapping between :obj:`anchor_point` and :obj:`presentation`::
 
         - 'upper left': 0,
         - 'upper center': 1,
@@ -711,7 +720,7 @@ class Cell(object):
         :type anchor_point: str or None
         :return: the new text.
         :rtype: Text
-        :raises ValueError: if an invalid value for ``presentation`` or ``anchor_point`` is given, or if both are given.
+        :raises ValueError: on an invalid value for :obj:`presentation` or :obj:`anchor_point`, or if both are given.
         """
         ls_text = self.ls.addText(int(layer), self.drawing._np_to_layoutscript(to_point(origin)), str(text))
         text_ = Text(ls_text, self.drawing)
@@ -727,34 +736,33 @@ class Cell(object):
 
 
 class Element(object):
-    """Wrap a generic ``LayoutScript.element`` object.
+    """Wrap a generic :class:`LayoutScript.element` object.
 
-    LayoutScript does not define subclasses for separate types of elements. Instead, the ``LayoutScript.element`` class
-    has methods like ``isPolygon`` and ``isCellref`` that can be used to determine the element type.
+    :mod:`LayoutScript` does not define subclasses for separate types of elements. Instead, 
+    the :class:`LayoutScript.element` class has methods like :meth:`isPolygon` and :meth:`isCellref` that can be used 
+    to determine the element type. 
 
     This class is not used directly, but its subclasses correspond to the specific types of elements that appear in
     cells in a layout, such as polygons and references to other cells. This class implements only the methods that
-    are relevant for all types of ``LayoutScript.element`` objects.
+    are relevant for all types of :class:`LayoutScript.element` objects.
     """
 
     def __init__(self, ls_element, drawing):
         """
-        :param ls_element: the element to wrap.
-        :type ls_element: LayoutScript.element
-        :param drawing: the drawing in which the element exists.
-        :type drawing: Drawing
+        :param LayoutScript.element ls_element: the element to wrap.
+        :param Drawing drawing: the drawing in which the element exists.
         """
         self.ls = ls_element
         self.drawing = drawing
 
     @property
     def points(self):
-        """The list of (x, y) points (``numpy.ndarray``).
+        """The list of (x, y) points (:class:`list`[:class:`numpy.ndarray`]).
 
-        Every Element has an array of one or more points, with a size and meaning that depend on the type of element.
-        For example, for a :class:`Polygon`, the array contains the points of the polygon, with identical first and
-        last points. For a :class:`Cellref`, which represents a reference in one cell to another cell,
-        the array contains a single point that is the location of the referenced cell.
+        Every :class:`Element` has an array of one or more points, with a size and meaning that depend on the type of 
+        element. For example, for a :class:`Polygon`, the array contains the points of the polygon, with identical 
+        first and last points. For a :class:`Cellref`, which represents a reference in one cell to another cell, 
+        the array contains a single point that is the location of the referenced cell. 
         """
         return self.drawing._to_list_of_numpy_arrays(self.ls.getPoints())
 
@@ -764,7 +772,7 @@ class Element(object):
 
     @property
     def data_type(self):
-        """Every Element has an integer data type attribute, part of the GDSII standard, which equals 0 by default."""
+        """Every :class:`Element` has an integer data type attribute, part of the GDSII standard, 0 by default."""
         return self.ls.getDatatype()
 
     @data_type.setter
@@ -772,12 +780,12 @@ class Element(object):
         self.ls.setDatatype(int(data_type))
 
     def __str__(self):
-        """Return a str representation of the Element."""
+        """Return a :class:`str` representation of the :class:`Element`."""
         return '{} {}'.format(self.__class__.__name__, self.points)
 
     @property
     def angle(self):
-        """The angle of the element in degrees, measured counterclockwise from the x-axis."""
+        """The angle of the :class:`Element` in degrees, measured counterclockwise from the x-axis."""
         return self.ls.getTrans().getAngle()
 
     @angle.setter
@@ -791,7 +799,7 @@ class Element(object):
     # ToDo: explain better the rotation
     @property
     def scale(self):
-        """The scale of the element, with a default of 1.0, used for expandable elements.
+        """The scale of the :class:`Element`, with a default of 1.0.
 
         The returned value is always positive. However, setting a negative scale will produce a rotation by 180
         degrees along with a scaling by the absolute value of the given scale.
@@ -807,7 +815,7 @@ class Element(object):
 
     @property
     def mirror_x(self):
-        """A bool that controls whether the Element is reflected across the x-axis."""
+        """A bool that controls whether the :class`Element` is reflected across the x-axis."""
         return self.ls.getTrans().getMirror_x()
 
     @mirror_x.setter
@@ -819,7 +827,7 @@ class Element(object):
 
     # ToDo: verify
     def reset_transformation(self):
-        """Reset the Element transformation: reset the scale to 1.0, the angle to 0.0, and mirror_x to False."""
+        """Reset the :class:`Element` transformation: set scale to 1.0, angle to 0.0, and mirror_x to False."""
         transformation = self.ls.getTrans()
         transformation.reset()
         self.ls.setTrans(transformation)
@@ -835,7 +843,7 @@ class Element(object):
 
 
 class LayerElement(Element):
-    """An Element that exists on a single layer.
+    """An :class:`Element` that exists on a single layer.
 
     This class is identical to :class:`Element` except that it adds a layer property for those that exist on a single
     layer, which is all of them except for the :class:`Cellref` and :class:`CellrefArray` classes.
@@ -843,7 +851,7 @@ class LayerElement(Element):
 
     @property
     def layer(self):
-        """The layer number (``int``)."""
+        """The layer number (:class:`int`)."""
         return self.ls.layerNum
 
     @layer.setter
@@ -852,21 +860,19 @@ class LayerElement(Element):
 
 
 class CellElement(Element):
-    """This class adds a cell attribute to Element."""
+    """This class adds a cell attribute to :class:`Element`."""
 
     def __init__(self, ls_element, drawing):
         """
-        :param ls_element: the cell reference object for which :meth:`isCellRef` or :meth:`isCellRefArray` is True.
-        :type ls_element: ``LayoutScript.element``
-        :param drawing: the drawing to which the element belongs.
-        :type drawing: Drawing
+        :param LayoutScript.element ls_element: the cell reference object for which :meth:`isCellRef` or :meth:`isCellRefArray` is True.
+        :param Drawing drawing: the drawing to which the element belongs.
         """
         super(CellElement, self).__init__(ls_element, drawing)
         self.cell = Cell(ls_element.depend(), drawing)
 
 
 class Cellref(CellElement):
-    """Wrap a ``LayoutScript.element`` that is a ``Cellref``, a reference to another cell."""
+    """Wrap a :class:`LayoutScript.element` that is a ``Cellref``, a reference to another cell."""
 
     def __str__(self):
         return 'Cell "{name}" at ({x:.3f}, {y:.3f})'.format(name=self.cell.name, x=self.origin[0], y=self.origin[1])
@@ -882,7 +888,7 @@ class Cellref(CellElement):
 
 
 class CellrefArray(CellElement):
-    """Wrap a ``LayoutScript.element`` that is a ``CellrefArray``, a reference to an array of another cell."""
+    """Wrap a :class:`LayoutScript.element` that is a ``CellrefArray``, a reference to an array of another cell."""
 
     def __str__(self):
         return 'CellrefArray "{name}": {points}, {nx} by {ny}'.format(
@@ -938,7 +944,7 @@ class CellrefArray(CellElement):
 
     @property
     def repeat_x(self):
-        """The integer number of columns; equals 'repeat x' in the GUI dialog."""
+        """The number of columns; equals 'repeat x' in the GUI dialog (:class:`int`)."""
         return self.ls.getNx()
 
     @repeat_x.setter
@@ -956,7 +962,7 @@ class CellrefArray(CellElement):
 
 
 class Box(LayerElement):
-    """Wrap a ``LayoutScript.element`` that is a ``Box``.
+    """Wrap a :class:`LayoutScript.element` that is a ``Box``.
 
     Note that boxes are part of the GDSII standard but some photomask manufacturers will reject designs containing them
     or will convert them to polygons.
@@ -974,27 +980,27 @@ class Box(LayerElement):
 
     @property
     def x(self):
-        """The x-coordinate of the origin (``float`` or ``int``, read-only)."""
+        """The x-coordinate of the origin (:class:`float` or :class:`int`, read-only)."""
         return self._points[0]
 
     @property
     def y(self):
-        """The y-coordinate of the origin (``float`` or ``int``, read-only)."""
+        """The y-coordinate of the origin (:class:`float` or :class:`int`, read-only)."""
         return self._points[1]
 
     @property
     def width(self):
-        """The horizontal extent measured from the origin (``float`` or ``int``, read-only)."""
+        """The horizontal extent measured from the origin (:class:`float` or :class:`int`, read-only)."""
         return self._points[2]
 
     @property
     def height(self):
-        """The vertical extent measured from the origin (``float`` or ``int``, read-only)."""
+        """The vertical extent measured from the origin (:class:`float` or :class:`int`, read-only)."""
         return self._points[3]
 
     @property
     def perimeter(self):
-        """The perimeter of the box (``float`` or ``int``, read-only)."""
+        """The perimeter of the box (:class:`float` or :class:`int`, read-only)."""
         return 2 * self.width + 2 * self.height
 
 
@@ -1043,7 +1049,7 @@ class Path(LayerElement):
 
     @property
     def length(self):
-        """The length of the path in user units, not including the caps (``float`` or ``int``)."""
+        """The length of the path in user units, not including the caps (:class:`float` or :class:`int`)."""
         x, y = np.vstack(self.points).T
         return np.sum(np.hypot(np.diff(x), np.diff(y)))
 
@@ -1052,7 +1058,7 @@ class Polygon(LayerElement):
 
     @property
     def perimeter(self):
-        """The perimeter of the polygon (``float`` or ``int``).
+        """The perimeter of the polygon (:class:`float` or :class:`int`).
 
         The first and last points of a Polygon are identical, so there are N ways to specify a Polygon with N points.
         """
@@ -1067,7 +1073,7 @@ class Text(LayerElement):
 
     @property
     def text(self):
-        """The displayed text (``str``)."""
+        """The displayed text (:class:`str`)."""
         #return self.ls.getName().toAscii().data()  # pylayout
         return self.ls.getName()
 
@@ -1077,7 +1083,7 @@ class Text(LayerElement):
 
     @property
     def height(self):
-        """The height of the text (``float`` or ``int``).
+        """The height of the text (:class:`float` or :class:`int`).
 
         This is the 'width' attribute in the GUI, which is slightly greater than the height of the text in the default
         font, while the width varies by letter.
@@ -1099,7 +1105,7 @@ class Text(LayerElement):
 
     @property
     def presentation(self):
-        """The 'presentation' of the text, meaning the anchor point (``int``); see :attr:`anchor_point`.
+        """The 'presentation' of the text, meaning the anchor point (:class:`int`); see :attr:`anchor_point`.
 
         The anchor point is the 'X' that appears in the GUI when selecting text. The default value is 0, which
         corresponds to an anchor point near the upper left corner of the text.
@@ -1116,7 +1122,7 @@ class Text(LayerElement):
 
     @property
     def anchor_point(self):
-        """The anchor point of the text (``str``); see :attr:`presentation`.
+        """The anchor point of the text (:class:`str`); see :attr:`presentation`.
 
         This is the mapping between 'anchor_point' and 'presentation'::
 

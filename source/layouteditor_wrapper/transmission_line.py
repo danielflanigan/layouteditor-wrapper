@@ -20,12 +20,11 @@ def from_increments(increments, origin=(0, 0)):
     terms of the absolute values. Example::
 
         >>> from_increments(increments=[(200, 0), (0, 300)], origin=(100, 0))
-        [np.array([100, 0]), np.array([300, 0]), np.array([300, 300])]
+        [array([100, 0]), array([300, 0]), array([300, 300])]
 
-    :param increments: a list of points in the package format; the differences between consecutive returned points.
-    :type increments: iterable[indexable]
-    :param origin: the starting point of the list.
-    :type origin: indexable
+    :param iterable[indexable] increments: a list of points in the package format; the differences between consecutive
+                                           returned points.
+    :param indexable origin: the starting point of the list.
     :return: a list of points in the package format.
     :rtype: list[numpy.ndarray]
     """
@@ -48,8 +47,7 @@ def smooth(points, radius, points_per_radian=DEFAULT_POINTS_PER_RADIAN):
     about half the length of the shorted straight section. If several points lie on the same line, the redundant ones
     are removed.
 
-    :param points: a list of points in package format.
-    :type points: iterable[indexable]
+    :param iterable[indexable] points: a list of points in package format.
     :param float radius: the radius of the circular arcs used to connect the straight segments.
     :param int points_per_radian: the number of points per radian of arc; the default of 60 (about 1 per degree) is
                                   usually enough.
@@ -86,18 +84,17 @@ def smooth(points, radius, points_per_radian=DEFAULT_POINTS_PER_RADIAN):
 
 
 class SegmentList(list):
-    """A list subclass for Segments that are joined sequentially to form a path."""
+    """A list subclass to hold Segments that are joined sequentially to form a path."""
 
-    # def draw(self, cell, origin, positive_layer, negative_layer, result_layer):
     def draw(self, cell, origin, *args, **kwargs):
-        """Draw all of the Segments contained in this SegmentList into the given cell, connected head to tail.
+        """Draw all of the segments contained in this instance into the given cell.
 
-        The Segments are drawn so that the origin of each segment after the first is the end of the previous segment.
+        The segments are drawn so that the start point of the first segment is the origin, and the start of each
+        subsequent segment is the end of the previous segment. If each segment has (0, 0) as its start point, they will
+        be continuously connected.
 
-        :param cell: The cell into which the result is drawn.
-        :type cell: Cell
-        :param origin: The point to use for the origin of the first Segment.
-        :type origin: indexable
+        :param Cell cell: The cell into which the result is drawn.
+        :param indexable origin: The point to use for the origin of the first segment.
         :param args: arguments passed to :meth:`Segment.draw`.
         :param kwargs: keyword arguments passed to :meth:`Segment.draw`.
         :return: None.
@@ -131,13 +128,14 @@ class SegmentList(list):
 
 
 class Segment(object):
-    """An element of a SegmentList that can draw itself into a cell."""
+    """An element of a :class:`SegmentList` that can draw itself into a cell."""
 
     def __init__(self, points, round_to=None):
         """The given points are saved as :attr:`_points`, and should generally not be modified.
 
-        :param points: the points that form the Segment.
-        :type points: iterable[indexable]
+        If the first point is (0, 0) then this segment will be connected to the previous segment when drawn.
+
+        :param iterable[indexable] points: the points that form the Segment.
         :param round_to: if not None, the coordinates of each point are rounded to this value; useful for ensuring that
                          all the points in a design lie on a grid (larger than the database unit size).
         :type round_to: float, int, or None
@@ -149,36 +147,36 @@ class Segment(object):
 
     @property
     def points(self):
-        """The points (``list[numpy.ndarray]``) in this Segment, rounded to ``round_to`` (read-only)."""
+        """The points, rounded to :attr:`round_to` (:class:`list`[:class:`numpy.ndarray`], read-only)."""
         return self._points
 
     @property
     def start(self):
-        """The start point (``numpy.ndarray``) of the Segment (read-only)."""
+        """The start point (:class:`numpy.ndarray`, read-only)."""
         return self._points[0]
 
     @property
     def end(self):
-        """The end point (``numpy.ndarray``) of the Segment (read-only)."""
+        """The end point (:class:`numpy.ndarray`, read-only)."""
         return self._points[-1]
 
     @property
     def x(self):
-        """A ``numpy.ndarray`` containing the x-coordinates of all points (read-only)."""
+        """The x-coordinates of all points (:class:`numpy.ndarray`, read-only)."""
         return np.array([point[0] for point in self.points])
 
     @property
     def y(self):
-        """A ``numpy.ndarray`` containing the y-coordinates of all points (read-only)."""
+        """The y-coordinates of all points (:class:`numpy.ndarray`, read-only)."""
         return np.array([point[1] for point in self.points])
 
     @property
     def length(self):
-        """The length of the Segment, calculating by adding the lengths of straight lines connecting the points."""
+        """The segment length calculated by adding the lengths of straight lines connecting the points."""
         return np.sum(np.hypot(np.diff(self.x), np.diff(self.y)))
 
-    def draw(self, cell, origin, **kwargs):  # positive_layer, negative_layer, result_layer):
-        """Draw this Segment in the given cell.
+    def draw(self, cell, origin, **kwargs):
+        """Draw this instance in the given cell.
 
         Subclasses implement this method to draw themselves.
 
@@ -190,7 +188,10 @@ class Segment(object):
 
 
 class SmoothedSegment(Segment):
-    """An element of a SegmentList that can draw itself into a cell, with corners smoothed using :func:`smooth`."""
+    """An element of a :class:`SegmentList` that can draw itself into a cell.
+
+     The corners of the given outline points are smoothed by replacing them with circular arcs using :func:`smooth`.
+     """
 
     def __init__(self, outline, radius, points_per_radian, round_to=None):
         """The given outline points are passed to :func:`smooth` and the result is stored in the instance attributes
@@ -199,8 +200,10 @@ class SmoothedSegment(Segment):
         :param iterable[indexable] outline: the outline points, before smoothing.
         :param float radius: the radius of the circular arcs used to connect the straight segments; see :func:`smooth`.
         :param int points_per_radian: the number of points per radian of arc; see :func:`smooth`.
-        :param round_to: if not None, the coordinates of each point are rounded to this value; useful for ensuring that
-                         all the points in a design lie on a grid (larger than the database unit size).
+        :param round_to: if not None, the coordinates of the given outline points are rounded to this value before
+                         smoothing, which is useful for ensuring that key points in a design lie on a grid that is
+                         larger than the database unit; the smoothed points are **not** rounded and have the precision
+                         of the database unit.
         :type round_to: float or None
         """
         super(SmoothedSegment, self).__init__(points=outline, round_to=round_to)
@@ -210,7 +213,9 @@ class SmoothedSegment(Segment):
 
     @property
     def points(self):
-        """The smoothed points (``list[numpy.ndarray]``); the outline points are ``_points`` (read-only)."""
+        """The smoothed points (:class:`list`[:class:`numpy.ndarray`]`, read-only); the outline points are
+        :attr:`_points`.
+        """
         p = [self.start]
         for bend in self.bends:
             p.extend(bend)
@@ -221,7 +226,7 @@ class SmoothedSegment(Segment):
 class Trace(SmoothedSegment):
     """A single positive wire that could be used as microstrip trace.
 
-    It can be drawn to overlap at either end with the adjacent elements, and the overlap lengths are not counted when
+    It can be drawn to overlap at either end with the adjacent segments, and the overlap lengths are not counted when
     calculating the total length. This is useful, for example, when drawing a trace where the electrical connection is
     formed by an overlap.
     """
@@ -229,7 +234,7 @@ class Trace(SmoothedSegment):
     def __init__(self, outline, width, start_overlap=0, end_overlap=0, radius=None,
                  points_per_radian=DEFAULT_POINTS_PER_RADIAN, round_to=None):
         """
-        :param outline:
+        :param iterable[indexable] outline: the outline points, before smoothing.
         :param float width: the width of the trace.
         :param float start_overlap: the overlap length at the start.
         :param float end_overlap: the overlap length at the end.

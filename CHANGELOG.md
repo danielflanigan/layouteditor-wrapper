@@ -4,18 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+
 ## [0.7.5] - 2020-10-26
 
 ### Fixed
-- Layout.save_as now works with new filename setter.
+- `Layout.save_as` now works with new filename setter.
 
 ## [0.7.2] - 2020-10-26
 
 ### Added
-- setup.cfg
+- `setup.cfg`
 
 ### Changed
-- Moved info from setup.py to setup.cfg.
+- Moved info from `setup.py` to `setup.cfg`.
 
 ## [0.7.1] - 2020-10-26
 
@@ -30,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2020-10-16
 
 ### Added
-- Split path.py into transmission_line.py (generic code) and cpw.py (CPW code)
+- Split `path.py` into `transmission_line.py` (generic code) and `cpw.py` (CPW code)
 
 ### Changed
 - Documentation update.
@@ -64,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved to "source layout" with package code in `source`.
 - Changed to MIT license in `LICENSE`.
 
-## [0.2.0] -- 2020-08-07
+## [0.2.0] - 2020-08-07
 
 ### Changed
 - Adapted for LayoutScript instead of pylayout.

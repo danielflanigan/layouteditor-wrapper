@@ -18,6 +18,14 @@ import sys
 # For ReadTheDocs: this seems to be necessary even when the package is installed with pip.
 sys.path.insert(0, os.path.abspath('../../source'))
 
+# Obtain version numbers for intersphinx. This might be too brittle...
+PYTHON_VERSION = '{}.{}'.format(sys.version_info.major, sys.version_info.minor)
+try:
+    import numpy
+    NUMPY_VERSION = numpy.__version__[:numpy.__version__.find('.', 2)]
+except ImportError:
+    NUMPY_VERSION = 'stable'
+
 # -- Project information -----------------------------------------------------
 
 project = 'layouteditor-wrapper'
@@ -43,6 +51,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -188,4 +197,9 @@ autodoc_default_options = {
     'special-members': '__init__',
     'undoc-members': True,
     'exclude-members': '__weakref__'
+}
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/{}'.format(PYTHON_VERSION), None),
+    'numpy': ('https://numpy.org/doc/{}'.format(NUMPY_VERSION), None),
 }
