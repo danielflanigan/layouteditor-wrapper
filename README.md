@@ -14,7 +14,8 @@ The main goal of this package is to provide an interface to LayoutScript that us
 Contents
 --------
 
-The name of the installed package is ``layouteditor_wrapper``. It includes the following modules:
+The name of the installed package is ``layouteditor_wrapper``. It includes the following modules::
+
 - ``wrapper.py``, the core of the package, which contains stateless wrapper classes for the LayoutScript objects;
 - ``transmission_line.py``, which contains classes and functions for drawing transmission lines; 
 - ``cpw.py``, which draws co-planar waveguide structures, especially those useful for drawing superconducting resonators; 
