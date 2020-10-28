@@ -45,15 +45,15 @@ FREE_VERSION_ADDED_TEXT_DATATYPE = 13476
 
 
 # These dicts map between the integer "presentation" of text elements and human-readable strings.
-TEXT_PRESENTATION_TO_ANCHOR_POINT = {'0': 'upper left',
-                                     '1': 'upper center',
-                                     '2': 'upper right',
-                                     '3': 'center left',
-                                     '4': 'center center',
-                                     '5': 'center right',
-                                     '6': 'lower left',
-                                     '7': 'lower center',
-                                     '8': 'lower right'
+TEXT_PRESENTATION_TO_ANCHOR_POINT = {0: 'upper left',
+                                     1: 'upper center',
+                                     2: 'upper right',
+                                     3: 'center left',
+                                     4: 'center center',
+                                     5: 'center right',
+                                     6: 'lower left',
+                                     7: 'lower center',
+                                     8: 'lower right'
 }
 
 TEXT_ANCHOR_POINT_TO_PRESENTATION = {'upper left': 0,
@@ -96,8 +96,7 @@ def to_point_list(iterable):
 def instantiate_element(ls_element, drawing):
     """Instantiate and return the appropriate :class:`Element` subclass for the given :class:`LayoutScript.element`.
 
-    :param ls_element: the element to wrap.
-    :type ls_element: LayoutScript.element
+    :param LayoutScript.element ls_element: the element to wrap.
     :param Drawing drawing: a Drawing object.
     :return: a wrapper for the :mod:`LayoutScript` element.
     :rtype: :class:`Box`, :class:`Cellref`, :class:`CellrefArray`, :class:`Circle`, :class:`Path`, :class:`Polygon`,
@@ -142,7 +141,6 @@ class Layout(object):
         self.filename = filename
         self.save()
 
-    # ToDo: can this be set?
     @property
     def filename(self):
         """The filename used to load the current layout from disk, or the empty string if it was never loaded
@@ -217,7 +215,7 @@ class Drawing(object):
         converted to and from database units.
 
         :param value_or_array: a value or array to be converted to the integer database units.
-        :type value_or_array: float, or numpy.ndarray[float]
+        :type value_or_array: float or numpy.ndarray[float]
         :return: the given value or array converted to database units.
         :rtype: int or numpy.ndarray[int]
         """
@@ -250,7 +248,7 @@ class Drawing(object):
         :param value_or_array: the value or array to convert.
         :type value_or_array: int or numpy.ndarray[int]
         :return: the given value or array converted from the database units.
-        :rtype: float, int, or numpy.ndarray[float, int]
+        :rtype: float, int or numpy.ndarray[float, int]
         """
         try:
             if self.use_user_unit:

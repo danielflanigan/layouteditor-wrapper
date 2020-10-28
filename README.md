@@ -14,7 +14,7 @@ The main goal of this package is to provide an interface to LayoutScript that us
 Contents
 --------
 
-The name of the installed package is ``layouteditor_wrapper``. It includes the following modules::
+The name of the installed package is ``layouteditor_wrapper``. It includes the following modules:
 
 - ``wrapper.py``, the core of the package, which contains stateless wrapper classes for the LayoutScript objects;
 - ``transmission_line.py``, which contains classes and functions for drawing transmission lines; 
@@ -25,7 +25,7 @@ The name of the installed package is ``layouteditor_wrapper``. It includes the f
 Install
 -------
 
-This package is compatible with versions of LayoutEditor that include LayoutScript instead of the old pylayout interface. (Earlier versions of this package were developed for pylayout.) The only dependencies are ``setuptools`` for installation and ``numpy``.
+This package is compatible with versions of LayoutEditor that include LayoutScript instead of the old pylayout interface. (Earlier versions of this package were developed for pylayout.) The only dependencies are ``setuptools`` and ``setuptools_scm`` for installation and ``numpy``.
 
 **Linux**
 
@@ -44,6 +44,7 @@ Change directory to the LayoutEditor Python 3.7 distribution root directory, the
     C:\path\to\layout-yyyymmdd-win-64bit\layout\python\python37> python C:\path\to\layouteditor-wrapper\install.py
 
 On Windows, this script does the following:
+
 - Bootstrap the packaging tools ``pip`` and ``setuptools``, which are not included with the LayoutEditor distribution;
 - Use ``pip`` to install the necessary packages listed in ``setup.py``;
 - Use ``pip`` to perform an editable install of the ``layouteditor_wrapper`` package;

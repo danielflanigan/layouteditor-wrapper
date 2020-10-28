@@ -21,9 +21,9 @@ def windows_install():
     environment_filename = os.path.join(layouteditor_wrapper_path, 'windows-environment.bat')
     with open(environment_filename, 'w') as f:
         f.writelines(["{}{}".format(line, os.linesep) for line in lines])
-        print("Wrote {}".format(environment_filename))
-        print("To start a command window with the layout environment, create a link with the following target:")
-        print(r'%windir%\System32\cmd.exe "/K" {}'.format(environment_filename))
+    print("Wrote {}".format(environment_filename))
+    print("To start a command window with the layout environment, create a link with the following target:")
+    print(r'%windir%\System32\cmd.exe "/K" {}'.format(environment_filename))
     sys.exit(0)
 
 
